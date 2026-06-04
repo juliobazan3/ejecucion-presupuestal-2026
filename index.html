@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ejecución Presupuestal POI 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--azul:#1a3a5c;--azulm:#2563a8;--azulc:#3b82f6;--verde:#059669;--verdec:#10b981;--naranja:#d97706;--rojo:#dc2626;--gs:#1e293b;--gm:#334155;--gc:#94a3b8;--bg:#f1f5f9;--blanco:#fff;--borde:#e2e8f0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--gs);}
+.header{background:linear-gradient(135deg,var(--azul),var(--azulm));color:white;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 16px rgba(26,58,92,.3);}
+.header h1{font-size:17px;font-weight:700;}
+.header p{font-size:11px;opacity:.7;margin-top:2px;}
+.nav{display:flex;gap:8px;}
+.nb{padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;transition:.2s;}
+.nb.on{background:white;color:var(--azul);}
+.nb:not(.on){background:rgba(255,255,255,.12);color:white;}
+.nb:hover:not(.on){background:rgba(255,255,255,.22);}
+.panel{display:none;}.panel.on{display:block;}
+.main{max-width:1400px;margin:0 auto;padding:24px 28px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat{background:white;border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid var(--azulc);}
+.stat.v{border-left-color:var(--verde);}.stat.n{border-left-color:var(--naranja);}.stat.r{border-left-color:var(--rojo);}
+.stat-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gc);margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--azul);line-height:1;}
+.stat-sub{font-size:11px;color:var(--gc);margin-top:4px;}
+.selector-bar{background:white;border-radius:12px;padding:14px 20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;}
+.selector-bar label{font-size:12px;font-weight:700;color:var(--azul);white-space:nowrap;}
+.selector-bar select{padding:8px 14px;border:1.5px solid var(--borde);border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--azul);outline:none;cursor:pointer;background:white;min-width:320px;}
+.selector-bar select:focus{border-color:var(--azulc);}
+.gblock{background:white;border-radius:14px;padding:22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow-x:auto;}
+.gtitle{font-size:13px;font-weight:700;color:var(--azul);border-left:4px solid var(--azulc);padding-left:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.gtitle span{font-size:11px;font-weight:400;color:var(--gc);}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:700px;}
+th{background:#f8fafc;padding:7px 8px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--gc);border-bottom:2px solid var(--borde);white-space:nowrap;}
+th.izq{text-align:left;}
+td{padding:8px;border-bottom:1px solid var(--borde);text-align:right;vertical-align:middle;font-size:11px;}
+td.izq{text-align:left;font-weight:600;font-size:11px;color:var(--gm);max-width:260px;}
+td.ger{text-align:left;font-size:10px;color:var(--gc);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}tr:hover td{background:#f8fafc;}
+.hprog{background:#fef9c3!important;color:#854d0e!important;}
+.hejec{background:#dcfce7!important;color:#166534!important;}
+.hsaldo{background:#fef3c7!important;color:#92400e!important;}
+.pnum{font-family:JetBrains Mono,monospace;color:#6b7280;font-size:11px;}
+.enum{font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;border:1.5px solid #86efac;background:#dcfce7;transition:.15s;display:inline-block;min-width:44px;text-align:center;}
+.enum:hover{background:#bbf7d0;border-color:#22c55e;transform:scale(1.08);}
+.spos{color:var(--verde);font-family:JetBrains Mono,monospace;font-weight:700;}
+.sneg{color:var(--rojo);font-family:JetBrains Mono,monospace;font-weight:700;}
+.scero{color:var(--gc);font-family:JetBrains Mono,monospace;}
+.totrow td{background:#f8fafc!important;font-weight:700;border-top:2px solid var(--borde);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center;}
+.overlay.on{display:flex;}
+.modal{background:white;border-radius:16px;padding:28px;width:500px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .2s ease;}
+@keyframes pop{from{transform:scale(.92);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-title{font-size:15px;font-weight:700;color:var(--azul);margin-bottom:6px;}
+.modal-sub{font-size:12px;color:var(--gc);margin-bottom:18px;}
+.minfo{background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;}
+.minfo div{margin-bottom:5px;}.minfo div:last-child{margin-bottom:0;}
+.minfo strong{color:var(--azul);}
+.flabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gm);display:block;margin-bottom:6px;}
+.finput{width:100%;padding:10px 14px;border:1.5px solid var(--borde);border-radius:8px;font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:.2s;}
+.finput:focus{border-color:var(--azulc);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+textarea.finput{resize:vertical;min-height:85px;font-size:13px;}
+.mbtns{display:flex;gap:10px;margin-top:18px;}
+.bok{flex:1;background:linear-gradient(135deg,var(--verde),var(--verdec));color:white;border:none;padding:11px;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.bok:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(5,150,105,.35);}
+.bok:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.bcan{padding:11px 20px;border:1.5px solid var(--borde);background:white;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--gm);}
+.malerta{padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;margin-top:12px;display:none;}
+.malerta.ok{background:#d1fae5;color:#065f46;display:block;}
+.malerta.err{background:#fee2e2;color:#991b1b;display:block;}
+.spin{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:giro .7s linear infinite;display:none;}
+@keyframes giro{to{transform:rotate(360deg);}}
+.htable{width:100%;border-collapse:collapse;font-size:11px;}
+.htable th{background:#f8fafc;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gc);border-bottom:2px solid var(--borde);}
+.htable td{padding:9px 10px;border-bottom:1px solid var(--borde);vertical-align:middle;}
+.htable tr:hover td{background:#f8fafc;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.bv{background:#e0e7ff;color:#3730a3;}.bg2{background:#d1fae5;color:#065f46;}
+.mono{font-family:JetBrains Mono,monospace;font-weight:700;color:var(--verde);}
+.ts{font-size:10px;color:var(--gc);font-family:JetBrains Mono,monospace;}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.fsel{padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-family:'Sora',sans-serif;font-size:12px;color:var(--gs);outline:none;cursor:pointer;}
+.empty{text-align:center;padding:40px;color:var(--gc);}
+.btncsv{padding:7px 14px;background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;border-radius:8px;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>&#x1F4B0; Ejecución Presupuestal POI 2026 — Anexo 8</h1>
+    <p>Gerencia Central de Prestaciones de Salud — GCPS · EsSalud &nbsp;|&nbsp; <span id="fhora"></span></p>
+  </div>
+  <div class="nav">
+    <button class="nb on" onclick="verPanel('ejecucion',this)">&#x1F4CA; Ejecución</button>
+    <button class="nb" onclick="verPanel('historial',this)">&#x1F4CB; Historial</button>
+    <button class="nb" onclick="verPanel('vista',this)">&#x1F441; Vista</button>
+  </div>
+</div>
+
+<div id="panel-ejecucion" class="panel on">
+<div class="main">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-lbl">Total Programado</div>
+      <div class="stat-val" id="s1">S/ —</div>
+      <div class="stat-sub">presupuesto total</div>
+    </div>
+    <div class="stat v">
+      <div class="stat-lbl">Total Ejecutado</div>
+      <div class="stat-val" id="s2">S/ —</div>
+      <div class="stat-sub">monto acumulado</div>
+    </div>
+    <div class="stat n">
+      <div class="stat-lbl">Saldo Disponible</div>
+      <div class="stat-val" id="s3">S/ —</div>
+      <div class="stat-sub">programado - ejecutado</div>
+    </div>
+    <div class="stat r">
+      <div class="stat-lbl">Usuario activo</div>
+      <div class="stat-val" style="font-size:13px;margin-top:6px;">
+        <select id="usuarioSel" style="padding:5px 8px;border:1.5px solid var(--borde);border-radius:6px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--azul);outline:none;background:white;width:100%;">
+          <option>Julio Baz&aacute;n</option>
+          <option>Wilson Gastulo</option>
+          <option>Jefe GCPS</option>
+        </select>
+      </div>
+      <div class="stat-sub">selecciona tu nombre</div>
+    </div>
+  </div>
+
+  <div class="selector-bar">
+    <label>&#x1F4CB; Ver Gerencia:</label>
+    <select id="selectorGerencia" onchange="cambiarGerencia()">
+      <option value="TODAS">— Todas las gerencias —</option>
+      <option value="GPNAIS">EJECUCIÓN PRESUPUESTAL 2026 — GPNAIS</option>
+      <option value="GSAM">EJECUCIÓN PRESUPUESTAL 2026 — GSAM</option>
+      <option value="GAPR">EJECUCIÓN PRESUPUESTAL 2026 — GAPR</option>
+      <option value="OIIS">EJECUCIÓN PRESUPUESTAL 2026 — OIIS</option>
+    </select>
+  </div>
+
+  <div id="tablasPpto"></div>
+</div>
+</div>
+
+<div id="panel-historial" class="panel">
+<div class="main">
+  <div class="gblock">
+    <div class="gtitle">Historial de Registros Presupuestales</div>
+    <div class="filtros">
+      <select class="fsel" id="fgh" onchange="cargarHistorial()">
+        <option value="">Todas las gerencias</option>
+        <option>GPNAIS</option><option>GSAM</option><option>GAPR</option><option>OIIS</option>
+      </select>
+      <select class="fsel" id="fch" onchange="cargarHistorial()">
+        <option value="">Todos los conceptos</option>
+        <option>Viaticos</option><option>Pasajes</option><option>Med. General</option>
+        <option>Med. De Familia</option><option>Q.F.</option><option>Administrador</option>
+        <option>Obstetra</option><option>Ingeniero</option><option>Enfermera</option>
+        <option>Alimentos</option><option>Otros Servicios</option>
+      </select>
+      <button class="btncsv" onclick="exportarCSV()">&#x2B07;&#xFE0F; Descargar CSV</button>
+      <span id="conteo" style="font-size:12px;color:var(--gc);"></span>
+    </div>
+    <div id="histBody"><div class="empty">&#x23F3; Cargando...</div></div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-title">&#x1F4B5; Registrar Ejecución Presupuestal</div>
+    <div class="modal-sub">El monto se acumula. Se guarda con fecha y hora automática.</div>
+    <div class="minfo">
+      <div><strong>Gerencia:</strong> <span id="mg"></span></div>
+      <div><strong>Sub Actividad:</strong> <span id="ms" style="font-size:11px;"></span></div>
+      <div><strong>Concepto:</strong> <span id="mc" style="font-weight:700;color:var(--verde);"></span></div>
+      <div><strong>Programado:</strong> <span id="mp" style="font-family:JetBrains Mono,monospace;font-weight:700;color:var(--azulm);"></span></div>
+      <div><strong>Ejecutado actual:</strong> <span id="me" style="font-family:JetBrains Mono,monospace;font-weight:700;color:var(--verde);"></span></div>
+      <div><strong>Saldo actual:</strong> <span id="msa" style="font-family:JetBrains Mono,monospace;font-weight:700;color:var(--naranja);"></span></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="flabel">Monto a ejecutar (S/) *</label>
+      <input type="number" id="mmonto" class="finput" min="1" placeholder="Ej: 1500" />
+    </div>
+    <div>
+      <label class="flabel">Sustento *</label>
+      <textarea id="msust" class="finput" maxlength="800"
+        oninput="document.getElementById('ccount').textContent=this.value.length"
+        placeholder="Describe el motivo, N° de orden, fecha, etc."></textarea>
+      <div style="text-align:right;font-size:10px;color:var(--gc);margin-top:3px;"><span id="ccount">0</span>/800 caracteres</div>
+    </div>
+    <div id="malerta" class="malerta"></div>
+    <div class="mbtns">
+      <button class="bcan" onclick="cerrarModal()">Cancelar</button>
+      <button class="bok" id="bok" onclick="guardarRegistro()">
+        <div class="spin" id="spin"></div>
+        <span id="boktxt">&#x1F4BE; Guardar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div id="panel-vista" class="panel">
+<div class="main">
+  <div style="background:white;border-radius:12px;padding:14px 20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;">
+    <label style="font-size:12px;font-weight:700;color:var(--azul);white-space:nowrap;">&#x1F441; Ver resumen de:</label>
+    <select id="selectorVista" onchange="renderVista()" style="padding:8px 14px;border:1.5px solid var(--borde);border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--azul);outline:none;cursor:pointer;background:white;min-width:320px;">
+      <option value="TODAS">— Todas las gerencias —</option>
+      <option value="GPNAIS">EJECUCIÓN PRESUPUESTAL 2026 — GPNAIS</option>
+      <option value="GSAM">EJECUCIÓN PRESUPUESTAL 2026 — GSAM</option>
+      <option value="GAPR">EJECUCIÓN PRESUPUESTAL 2026 — GAPR</option>
+      <option value="OIIS">EJECUCIÓN PRESUPUESTAL 2026 — OIIS</option>
+    </select>
+  </div>
+  <div id="vistaBody"></div>
+</div>
+</div>
+
+<script>
+var SURL = 'https://krikgncyptyjjutzaufz.supabase.co';
+var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyaWtnbmN5cHR5amp1dHphdWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzYzOTYsImV4cCI6MjA5NjE1MjM5Nn0.8Kzgpf8UhASf-hgN7jix-82ZeNsUpE7R-EF6zpZCZCI';
+
+var CONCEPTOS = ['Viaticos','Pasajes','Med. General','Med. De Familia','Q.F.','Administrador','Obstetra','Ingeniero','Enfermera','Alimentos','Otros Servicios'];
+
+var DATOS = [
+  {sub:'Actualizaci\u00f3n de los requisitos t\u00e9cnicos para la implementaci\u00f3n de las UPSS Ocupacional en EsSalud',ger:'GPNAIS',subger:'GPNAIS-SGPE',prog:[0,0,24000,0,0,0,0,0,0,0,0]},
+  {sub:'Actualizacion de la Directiva Norma para la Referencia y Contrarreferencia en el Seguro Social de Salud',ger:'GPNAIS',subger:'GPNAIS-SGNSS',prog:[0,0,0,0,0,0,0,0,0,1500,0]},
+  {sub:'Supervisiones de las actividades preparatorias de la categorizaci\u00f3n o recategorizaci\u00f3n de las IPRESS propias de ESSALUD',ger:'GPNAIS',subger:'GPNAIS-SGNSS',prog:[5760,6915,0,0,0,0,0,0,0,0,0]},
+  {sub:'Realizar asistencia T\u00e9cnica Virtual orientada a mejorar las prestaciones: Salud Materna',ger:'GPNAIS',subger:'GPNAIS-SGNAPS',prog:[10880,2131,0,0,0,0,0,0,0,5900,0]},
+  {sub:'Realizar asistencia T\u00e9cnica Virtual orientada a mejorar las prestaciones: HTA-DM',ger:'GPNAIS',subger:'GPNAIS-SGNAPS',prog:[7100,4060,0,0,0,0,0,0,0,5808,0]},
+  {sub:'Realizar asistencia T\u00e9cnica Virtual orientada a mejorar las prestaciones: Salud Mental',ger:'GPNAIS',subger:'GPNAIS-SGNAPS',prog:[2560,0,0,0,0,0,0,0,0,3000,800]},
+  {sub:'Realizar asistencia T\u00e9cnica Virtual orientada a mejorar las prestaciones: VIH/SIDA',ger:'GPNAIS',subger:'GPNAIS-SGNAPS',prog:[2500,0,0,0,0,0,0,0,0,2300,800]},
+  {sub:'Realizar asistencia T\u00e9cnica Virtual orientada a mejorar las prestaciones: Prevenci\u00f3n y Control de la TB',ger:'GPNAIS',subger:'GPNAIS-SGNAPS',prog:[3112,0,0,0,0,0,0,0,0,2400,800]},
+  {sub:'Realizar asistencia T\u00e9cnica Virtual orientada a mejorar las prestaciones: Enfermedad Osteomuscular',ger:'GPNAIS',subger:'GPNAIS-SGNAPS',prog:[0,0,0,0,0,0,0,0,0,2700,0]},
+  {sub:'Realizar asistencia T\u00e9cnica: Manual de Prestaciones de Salud en Anatom\u00eda Patol\u00f3gica',ger:'GPNAIS',subger:'GPNAIS-SGNADYT',prog:[0,0,0,0,0,0,0,0,0,3000,0]},
+  {sub:'Evaluaci\u00f3n del control y manejo de residuos s\u00f3lidos en las IPRESS de ESSALUD',ger:'GSAM',subger:'GSAM',prog:[1600,0,0,0,0,0,0,0,0,0,0]},
+  {sub:'Evaluaci\u00f3n de las disposiciones para la limpieza y desinfecci\u00f3n de ambientes en las IPRESS de ESSALUD',ger:'GSAM',subger:'GSAM',prog:[2560,3600,0,0,0,0,0,0,0,0,0]},
+  {sub:'Normas de Bioseguridad en el Seguro Social de Salud - ESSALUD',ger:'GSAM',subger:'GSAM',prog:[3840,4800,0,0,0,0,0,0,0,0,0]},
+  {sub:'Asistencia Tecnica del Fortalecimiento de las IPRESS sobre Directiva de Gesti\u00f3n y Manejo de Residuos S\u00f3lidos',ger:'GSAM',subger:'GSAM',prog:[0,0,0,0,0,0,0,0,0,5322,0]},
+  {sub:'Asistencia Tecnica del Fortalecimiento de las IPRESS sobre Norma T\u00e9cnica para la Limpieza y Desinfecci\u00f3n',ger:'GSAM',subger:'GSAM',prog:[3520,7200,0,0,0,0,0,0,0,0,0]},
+  {sub:'Realizar asistencia t\u00e9cnica presencial para el fortalecimiento de la Red de Inteligencia Sanitaria',ger:'OIIS',subger:'OIIS',prog:[9160,6000,0,0,0,0,0,0,0,16231,0]},
+  {sub:'Elaboraci\u00f3n de Estudios de Prevalencia Puntual de Infecciones Intrahospitalarias',ger:'OIIS',subger:'OIIS',prog:[7360,4400,0,0,0,0,0,0,0,0,0]},
+  {sub:'Controlar, monitorear y supervisar el cumplimiento de la normativa de inmunizaciones, crecimiento y desarrollo',ger:'GAPR',subger:'GAPR-SGCPAP',prog:[1280,2998,0,0,0,0,0,0,12000,0,0]},
+  {sub:'Controlar, monitorear y supervisar el cumplimiento de las normativas de lucha contra la anemia',ger:'GAPR',subger:'GAPR-SGCPAP',prog:[1280,2998,12000,0,0,0,0,0,0,0,0]},
+  {sub:'Controlar, monitorear y supervisar el cumplimiento de las disposiciones de la normativa PREVENIR',ger:'GAPR',subger:'GAPR-SGCPAP',prog:[1280,2998,0,0,0,14000,0,0,0,0,0]},
+  {sub:'Controlar, monitorear y supervisar las normativas de la Etapa vida adulto en la promoci\u00f3n y prevenci\u00f3n del C\u00e1ncer',ger:'GAPR',subger:'GAPR-SGCPAP',prog:[11138,4600,0,0,0,0,0,0,0,0,0]},
+  {sub:'Controlar, monitorear y supervisar el cumplimiento de las normas del modelo de cuidado integral',ger:'GAPR',subger:'GAPR-SGCPAP',prog:[1280,998,0,0,0,0,0,0,0,0,600]},
+  {sub:'Realizar asistencia t\u00e9cnica virtual para mejorar los servicios de Medicina Complementaria y Estrategia PREVENIR',ger:'GAPR',subger:'GAPR-SGMC',prog:[8960,0,0,0,0,0,0,0,0,0,0]},
+  {sub:'Asistencia T\u00e9cnica: Cuidado integral de salud del adulto mayor en EsSalud',ger:'GAPR',subger:'GAPR-SGPSYPE',prog:[0,0,0,0,0,0,0,0,0,3193,0]},
+  {sub:'Asistencia T\u00e9cnica: Control del Crecimiento y Desarrollo del adolescente en EsSalud',ger:'GAPR',subger:'GAPR-SGPSYPE',prog:[0,0,0,0,0,0,0,0,0,3193,0]},
+  {sub:'Asistencia T\u00e9cnica: Cuidado Integral para la prevenci\u00f3n y control de la anemia en EsSalud',ger:'GAPR',subger:'GAPR-SGPSYPE',prog:[0,0,0,0,0,0,0,0,0,3193,0]},
+  {sub:'Asistencia T\u00e9cnica: Manual para el desarrollo de actividades de Promoci\u00f3n de la Salud en Nutrici\u00f3n de EsSalud',ger:'GAPR',subger:'GAPR-SGPSYPE',prog:[0,0,0,0,0,0,0,0,0,3193,0]},
+  {sub:'Asistencia T\u00e9cnica: Psicoprofilaxis del Climaterio en EsSalud',ger:'GAPR',subger:'GAPR-SGPSYPE',prog:[0,0,0,0,0,0,0,0,0,3193,0]}
+];
+
+var ejecDB = {};
+var modalCtx = null;
+var histCache = [];
+
+setInterval(function(){
+  var el = document.getElementById('fhora');
+  if(el) el.textContent = new Date().toLocaleString('es-PE',{weekday:'short',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}, 1000);
+
+function fmt(n){ return 'S/ ' + Number(n||0).toLocaleString('es-PE'); }
+function fmtN(n){ return Number(n||0).toLocaleString('es-PE'); }
+
+function apiGet(path){
+  return fetch(SURL+'/rest/v1/'+path,{headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY}}).then(function(r){return r.json();});
+}
+function apiPost(data){
+  return fetch(SURL+'/rest/v1/ejecucion_presupuestal',{method:'POST',headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(data)}).then(function(r){return r.ok;});
+}
+
+function getEjec(subger, sub, concepto){
+  var k = subger + '|||' + sub + '|||' + concepto;
+  return ejecDB[k] || 0;
+}
+
+
+function renderVista(){
+  var filtro = document.getElementById('selectorVista').value;
+  var orden = ['GPNAIS','GSAM','GAPR','OIIS'];
+  var grupos = {};
+  orden.forEach(function(g){ grupos[g] = []; });
+  DATOS.forEach(function(d){ if(grupos[d.ger]) grupos[d.ger].push(d); });
+  var html = '';
+  orden.forEach(function(g){
+    if(filtro !== 'TODAS' && filtro !== g) return;
+    if(!grupos[g].length) return;
+    html += '<div class="gblock">';
+    html += '<div class="gtitle">EJECUCIÓN PRESUPUESTAL 2026 — ' + g;
+    html += '<span style="background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;">&#x1F441; Solo lectura</span></div>';
+    html += '<div style="overflow-x:auto;">';
+    html += '<table style="min-width:1100px;"><thead>';
+    html += '<tr>';
+    html += '<th class="izq" rowspan="2" style="min-width:160px;">SUB ACTIVIDAD</th>';
+    html += '<th class="izq" rowspan="2">SUBGERENCIA</th>';
+    html += '<th colspan="' + (CONCEPTOS.length+1) + '" class="hprog">PROGRAMACIÓN (FIJO) S/</th>';
+    html += '<th colspan="' + (CONCEPTOS.length+1) + '" class="hejec">EJECUCIÓN S/</th>';
+    html += '<th colspan="' + (CONCEPTOS.length+1) + '" class="hsaldo">SALDO PRESUPUESTAL S/</th>';
+    html += '</tr><tr>';
+    CONCEPTOS.forEach(function(con){ html += '<th class="hprog">' + con + '</th>'; });
+    html += '<th class="hprog">TOTAL</th>';
+    CONCEPTOS.forEach(function(con){ html += '<th class="hejec">' + con + '</th>'; });
+    html += '<th class="hejec">TOTAL</th>';
+    CONCEPTOS.forEach(function(con){ html += '<th class="hsaldo">' + con + '</th>'; });
+    html += '<th class="hsaldo">TOTAL</th>';
+    html += '</tr></thead><tbody>';
+
+    var totProg = new Array(CONCEPTOS.length).fill(0);
+    var totEjec = new Array(CONCEPTOS.length).fill(0);
+
+    grupos[g].forEach(function(d){
+      var eArr = CONCEPTOS.map(function(con){ return getEjec(d.subger, d.sub, con); });
+      var tProg = d.prog.reduce(function(a,b){return a+b;},0);
+      var tEjec = eArr.reduce(function(a,b){return a+b;},0);
+      d.prog.forEach(function(v,i){ totProg[i] += v; });
+      eArr.forEach(function(v,i){ totEjec[i] += v; });
+      var tSaldo = tProg - tEjec;
+      var subShort = d.sub.length > 55 ? d.sub.substring(0,55) + '...' : d.sub;
+      html += '<tr>';
+      html += '<td class="izq" title="' + d.sub.replace(/"/g,'') + '">' + subShort + '</td>';
+      html += '<td class="ger">' + d.subger + '</td>';
+      d.prog.forEach(function(v){ html += '<td><span class="pnum">' + (v ? fmtN(v) : '-') + '</span></td>'; });
+      html += '<td><span class="pnum" style="font-weight:700;">' + fmtN(tProg) + '</span></td>';
+      eArr.forEach(function(v){ html += '<td><span class="mono" style="color:#166534;">' + fmtN(v) + '</span></td>'; });
+      html += '<td><span class="mono" style="color:#166534;font-weight:700;">' + fmtN(tEjec) + '</span></td>';
+      CONCEPTOS.forEach(function(con,ci){
+        var s = d.prog[ci] - eArr[ci];
+        var col = s > 0 ? '#c2410c' : s < 0 ? 'var(--rojo)' : 'var(--gc)';
+        html += '<td><span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:' + col + ';">' + fmtN(s) + '</span></td>';
+      });
+      var tSCol = tSaldo > 0 ? '#c2410c' : tSaldo < 0 ? 'var(--rojo)' : 'var(--gc)';
+      html += '<td><span style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:700;color:' + tSCol + ';">' + fmtN(tSaldo) + '</span></td>';
+      html += '</tr>';
+    });
+
+    var ttP = totProg.reduce(function(a,b){return a+b;},0);
+    var ttE = totEjec.reduce(function(a,b){return a+b;},0);
+    var ttS = ttP - ttE;
+    var sc2col = ttS > 0 ? '#c2410c' : ttS < 0 ? 'var(--rojo)' : 'var(--gc)';
+    html += '<tr class="totrow"><td class="izq" colspan="2">TOTAL ' + g + '</td>';
+    totProg.forEach(function(v){ html += '<td><span class="pnum" style="font-weight:700;">' + fmtN(v) + '</span></td>'; });
+    html += '<td><span class="pnum" style="font-weight:700;color:var(--azul);">' + fmtN(ttP) + '</span></td>';
+    totEjec.forEach(function(v){ html += '<td><span class="mono" style="color:#166534;">' + fmtN(v) + '</span></td>'; });
+    html += '<td><span class="mono" style="color:var(--verde);font-weight:700;">' + fmtN(ttE) + '</span></td>';
+    var totSaldo = totProg.map(function(p,i){ return p - totEjec[i]; });
+    totSaldo.forEach(function(s){
+      var col = s > 0 ? '#c2410c' : s < 0 ? 'var(--rojo)' : 'var(--gc)';
+      html += '<td><span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:' + col + ';">' + fmtN(s) + '</span></td>';
+    });
+    html += '<td><span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:' + sc2col + ';">' + fmtN(ttS) + '</span></td>';
+    html += '</tr></tbody></table></div></div>';
+  });
+  document.getElementById('vistaBody').innerHTML = html || '<div class="empty">Sin datos para mostrar.</div>';
+}
+
+function cargarDatos(){
+  apiGet('ejecucion_presupuestal?select=gerencia,sub_actividad,concepto,monto').then(function(rows){
+    if(!Array.isArray(rows)) return;
+    ejecDB = {};
+    var totalEjec = 0;
+    rows.forEach(function(r){
+      var k = r.gerencia + '|||' + r.sub_actividad + '|||' + r.concepto;
+      ejecDB[k] = (ejecDB[k]||0) + Number(r.monto);
+      totalEjec += Number(r.monto);
+    });
+    var totalProg = 0;
+    DATOS.forEach(function(d){ d.prog.forEach(function(v){ totalProg += v; }); });
+    document.getElementById('s1').textContent = fmt(totalProg);
+    document.getElementById('s2').textContent = fmt(totalEjec);
+    var saldo = totalProg - totalEjec;
+    var s3 = document.getElementById('s3');
+    s3.textContent = fmt(saldo);
+    s3.style.color = saldo >= 0 ? 'var(--verde)' : 'var(--rojo)';
+    renderTablas(document.getElementById('selectorGerencia').value);
+    var activePanel = document.querySelector('.panel.on');
+    if(activePanel && activePanel.id === 'panel-vista') renderVista();
+  }).catch(function(){ renderTablas('TODAS'); });
+}
+
+function cambiarGerencia(){
+  renderTablas(document.getElementById('selectorGerencia').value);
+}
+
+function renderTablas(filtro){
+  var grupos = {};
+  var orden = ['GPNAIS','GSAM','GAPR','OIIS'];
+  orden.forEach(function(g){ grupos[g] = []; });
+  DATOS.forEach(function(d){ if(grupos[d.ger]) grupos[d.ger].push(d); });
+  var html = '';
+  orden.forEach(function(g){
+    if(filtro === 'TODAS' || filtro === g){
+      if(grupos[g].length > 0) html += renderBloque(g, grupos[g]);
+    }
+  });
+  document.getElementById('tablasPpto').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--gc);">No hay datos para mostrar.</div>';
+}
+
+function renderBloque(ger, filas){
+  var html = '<div class="gblock"><div class="gtitle">EJECUCIÓN PRESUPUESTAL 2026 — ' + ger;
+  html += '<span>&#x1F4B5; Haz clic en los montos verdes para registrar ejecución</span></div>';
+  html += '<table><thead><tr>';
+  html += '<th class="izq" rowspan="2" style="min-width:200px;">SUB ACTIVIDAD</th>';
+  html += '<th class="izq" rowspan="2">SUBGERENCIA</th>';
+  html += '<th class="hprog" rowspan="2">TOTAL PROG.<br>S/</th>';
+  CONCEPTOS.forEach(function(con){ html += '<th class="hejec">' + con + '</th>'; });
+  html += '<th class="hejec">TOTAL<br>EJEC. S/</th>';
+  html += '<th class="hsaldo" rowspan="2">SALDO<br>S/</th>';
+  html += '</tr></thead><tbody>';
+
+  var totProg = 0;
+  var totEjecArr = new Array(CONCEPTOS.length).fill(0);
+
+  filas.forEach(function(d){
+    var eArr = CONCEPTOS.map(function(con){ return getEjec(d.subger, d.sub, con); });
+    var tProg = d.prog.reduce(function(a,b){return a+b;},0);
+    var tEjec = eArr.reduce(function(a,b){return a+b;},0);
+    totProg += tProg;
+    eArr.forEach(function(v,i){ totEjecArr[i] += v; });
+    var tSaldo = tProg - tEjec;
+    var scls = tSaldo > 0 ? 'spos' : tSaldo < 0 ? 'sneg' : 'scero';
+    var subShort = d.sub.length > 65 ? d.sub.substring(0,65)+'...' : d.sub;
+    html += '<tr>';
+    html += '<td class="izq" title="' + d.sub + '">' + subShort + '</td>';
+    html += '<td class="ger">' + d.subger + '</td>';
+    html += '<td><span class="pnum" style="font-weight:700;">' + fmtN(tProg) + '</span></td>';
+    eArr.forEach(function(e, ci){
+      var idx = ci;
+      html += '<td><span class="enum" onclick="abrirModal(' + idx + ',' + filas.indexOf(d) + ',\'' + ger + '\')">' + fmtN(e) + '</span></td>';
+    });
+    html += '<td><span class="mono">' + fmtN(tEjec) + '</span></td>';
+    html += '<td><span class="' + scls + '">' + fmtN(tSaldo) + '</span></td>';
+    html += '</tr>';
+  });
+
+  var ttEjec = totEjecArr.reduce(function(a,b){return a+b;},0);
+  var ttSaldo = totProg - ttEjec;
+  var scls2 = ttSaldo > 0 ? 'spos' : ttSaldo < 0 ? 'sneg' : 'scero';
+  html += '<tr class="totrow"><td class="izq" colspan="2">TOTAL ' + ger + '</td>';
+  html += '<td><span class="pnum" style="font-weight:700;color:var(--azul);">' + fmtN(totProg) + '</span></td>';
+  totEjecArr.forEach(function(v){ html += '<td><span class="mono">' + fmtN(v) + '</span></td>'; });
+  html += '<td><span class="mono" style="color:var(--verde);">' + fmtN(ttEjec) + '</span></td>';
+  html += '<td><span class="' + scls2 + '" style="font-size:13px;">' + fmtN(ttSaldo) + '</span></td>';
+  html += '</tr></tbody></table></div>';
+  return html;
+}
+
+var datosGerActual = [];
+
+function abrirModal(conceptoIdx, filaIdx, ger){
+  var grupos = {};
+  var orden = ['GPNAIS','GSAM','GAPR','OIIS'];
+  orden.forEach(function(g){ grupos[g] = []; });
+  DATOS.forEach(function(d){ if(grupos[d.ger]) grupos[d.ger].push(d); });
+  var d = grupos[ger][filaIdx];
+  var concepto = CONCEPTOS[conceptoIdx];
+  var prog = d.prog[conceptoIdx];
+  var ejec = getEjec(d.subger, d.sub, concepto);
+  modalCtx = {subger: d.subger, sub: d.sub, concepto: concepto};
+  document.getElementById('mg').textContent = d.subger;
+  document.getElementById('ms').textContent = d.sub.length > 80 ? d.sub.substring(0,80)+'...' : d.sub;
+  document.getElementById('mc').textContent = concepto;
+  document.getElementById('mp').textContent = fmt(prog);
+  document.getElementById('me').textContent = fmt(ejec);
+  document.getElementById('msa').textContent = fmt(prog - ejec);
+  document.getElementById('mmonto').value = '';
+  document.getElementById('msust').value = '';
+  document.getElementById('ccount').textContent = '0';
+  var al = document.getElementById('malerta');
+  al.className = 'malerta'; al.textContent = '';
+  document.getElementById('overlay').classList.add('on');
+  setTimeout(function(){ document.getElementById('mmonto').focus(); }, 100);
+}
+
+function cerrarModal(){ document.getElementById('overlay').classList.remove('on'); }
+document.getElementById('overlay').addEventListener('click', function(e){ if(e.target===this) cerrarModal(); });
+
+function guardarRegistro(){
+  var monto = parseFloat(document.getElementById('mmonto').value);
+  var sust = document.getElementById('msust').value.trim();
+  var al = document.getElementById('malerta');
+  if(!monto || monto <= 0){ al.className='malerta err'; al.textContent='Ingresa un monto v\u00e1lido mayor a 0.'; return; }
+  if(!sust){ al.className='malerta err'; al.textContent='El sustento es obligatorio.'; return; }
+  var btn=document.getElementById('bok'), sp=document.getElementById('spin'), tx=document.getElementById('boktxt');
+  btn.disabled=true; sp.style.display='block'; tx.textContent='Guardando...';
+  apiPost({gerencia:modalCtx.subger, sub_actividad:modalCtx.sub, concepto:modalCtx.concepto, monto:monto, sustento:sust, usuario:document.getElementById('usuarioSel').value}).then(function(ok){
+    btn.disabled=false; sp.style.display='none'; tx.textContent='\uD83D\uDCBE Guardar';
+    if(ok){ al.className='malerta ok'; al.textContent='Guardado correctamente.'; setTimeout(function(){ cerrarModal(); cargarDatos(); }, 1200); }
+    else{ al.className='malerta err'; al.textContent='Error al guardar. Intenta nuevamente.'; }
+  });
+}
+
+function verPanel(id, btn){
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+  document.querySelectorAll('.nb').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('panel-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='historial') cargarHistorial();
+  if(id==='vista') renderVista();
+}
+
+function cargarHistorial(){
+  var body = document.getElementById('histBody');
+  body.innerHTML = '<div class="empty">&#x23F3; Cargando...</div>';
+  var q = 'ejecucion_presupuestal?select=*&order=fecha_hora.desc&limit=500';
+  var fg = document.getElementById('fgh').value;
+  var fc = document.getElementById('fch').value;
+  if(fg) q += '&gerencia=like.' + fg + '%25';
+  if(fc) q += '&concepto=eq.' + encodeURIComponent(fc);
+  apiGet(q).then(function(datos){
+    histCache = Array.isArray(datos) ? datos : [];
+    if(!histCache.length){ body.innerHTML='<div class="empty">&#x1F4ED; No hay registros.</div>'; document.getElementById('conteo').textContent=''; return; }
+    document.getElementById('conteo').textContent = histCache.length + ' registro' + (histCache.length!==1?'s':'');
+    var h = '<table class="htable"><thead><tr><th>Fecha/Hora</th><th>Gerencia</th><th>Sub Actividad</th><th>Concepto</th><th>Monto S/</th><th>Sustento</th><th>Usuario</th><th>Acci\u00f3n</th></tr></thead><tbody>';
+    histCache.forEach(function(r){
+      var f = new Date(r.fecha_hora).toLocaleString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      h += '<tr>';
+      h += '<td><span class="ts">'+f+'</span></td>';
+      h += '<td><span class="badge bv">'+r.gerencia+'</span></td>';
+      h += '<td style="font-size:10px;max-width:200px;">'+r.sub_actividad+'</td>';
+      h += '<td><span class="badge bg2">'+r.concepto+'</span></td>';
+      h += '<td><span class="mono">'+fmt(r.monto)+'</span></td>';
+      h += '<td style="font-size:11px;color:#64748b;max-width:220px;">'+r.sustento+'</td>';
+      h += '<td style="font-size:11px;">'+r.usuario+'</td>';
+      h += '<td><button onclick="eliminar(\''+r.id+'\')" style="padding:4px 8px;background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">&#x1F5D1; Borrar</button></td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    body.innerHTML = h;
+  }).catch(function(){ body.innerHTML='<div class="empty">&#x274C; Error de conexi\u00f3n.</div>'; });
+}
+
+function eliminar(id){
+  if(!confirm('\u00bfSeguro que deseas eliminar este registro?')) return;
+  fetch(SURL+'/rest/v1/ejecucion_presupuestal?id=eq.'+id,{method:'DELETE',headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY}}).then(function(r){
+    if(r.ok){ alert('Eliminado correctamente.'); cargarHistorial(); cargarDatos(); }
+    else alert('Error al eliminar.');
+  });
+}
+
+function exportarCSV(){
+  if(!histCache.length){ alert('No hay datos. Abre el Historial primero.'); return; }
+  var cols = ['Fecha/Hora','Gerencia','Sub Actividad','Concepto','Monto S/','Sustento','Usuario'];
+  var csv = '\uFEFF' + cols.join(';') + '\n';
+  histCache.forEach(function(r){
+    var f = [new Date(r.fecha_hora).toLocaleString('es-PE'),r.gerencia,r.sub_actividad,r.concepto,r.monto,r.sustento,r.usuario];
+    csv += f.map(function(v){ return '"'+String(v||'').replace(/"/g,'""')+'"'; }).join(';') + '\n';
+  });
+  var blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href=url; a.download='Ejecucion_Presupuestal_2026_'+new Date().toISOString().split('T')[0]+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+cargarDatos();
+setInterval(cargarDatos, 30000);
+</script>
+</body>
+</html>
