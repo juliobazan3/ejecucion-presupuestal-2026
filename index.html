@@ -28,21 +28,32 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--gs);}
 .filtros-bar label{font-size:12px;font-weight:700;color:var(--azul);white-space:nowrap;}
 .fsel2{padding:8px 14px;border:1.5px solid var(--borde);border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--azul);outline:none;cursor:pointer;background:white;min-width:200px;}
 .fsel2:focus{border-color:var(--azulc);}
-.btn-todo{padding:8px 16px;background:var(--azulm);color:white;border:none;border-radius:8px;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.btn-todo:hover{background:var(--azul);}
 .gblock{background:white;border-radius:14px;padding:22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow-x:auto;}
 .gtitle{font-size:13px;font-weight:700;color:var(--azul);border-left:4px solid var(--azulc);padding-left:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 .gtitle span{font-size:11px;font-weight:400;color:var(--gc);}
+
+/* ── TABLA PRINCIPAL ── */
 table{width:100%;border-collapse:collapse;font-size:11px;min-width:600px;}
 th{background:#f8fafc;padding:7px 8px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--gc);border-bottom:2px solid var(--borde);white-space:nowrap;}
 th.izq{text-align:left;}
 td{padding:8px;border-bottom:1px solid var(--borde);text-align:right;vertical-align:middle;font-size:11px;}
 td.izq{text-align:left;font-weight:600;font-size:11px;color:var(--gm);max-width:280px;}
-td.sub{text-align:left;font-size:10px;color:var(--gc);white-space:nowrap;}
 tr:last-child td{border-bottom:none;} tr:hover td{background:#f8fafc;}
+
+/* GRUPOS DE COLUMNAS — separadores visuales */
+.sep-prog th, .sep-prog td { border-left: 3px solid #fbbf24 !important; }
+.sep-ejec th, .sep-ejec td { border-left: 3px solid #34d399 !important; }
+.sep-saldo th, .sep-saldo td { border-left: 3px solid #f97316 !important; }
+
+/* Cabeceras de grupo */
+th.grp-prog{background:#fef9c3!important;color:#854d0e!important;font-size:10px;font-weight:800;text-transform:uppercase;border-bottom:2px solid #fbbf24!important;}
+th.grp-ejec{background:#dcfce7!important;color:#166534!important;font-size:10px;font-weight:800;border-bottom:2px solid #34d399!important;}
+th.grp-saldo{background:#ffedd5!important;color:#c2410c!important;font-size:10px;font-weight:800;border-bottom:2px solid #f97316!important;}
+
 .hprog{background:#fef9c3!important;color:#854d0e!important;}
 .hejec{background:#dcfce7!important;color:#166534!important;}
 .hsaldo{background:#ffedd5!important;color:#c2410c!important;}
+
 .pnum{font-family:'JetBrains Mono',monospace;color:#6b7280;font-size:11px;}
 .enum{font-family:'JetBrains Mono',monospace;font-weight:700;color:#166534;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;border:1.5px solid #86efac;background:#dcfce7;transition:.15s;display:inline-block;min-width:48px;text-align:center;}
 .enum:hover{background:#bbf7d0;border-color:#22c55e;transform:scale(1.08);}
@@ -50,6 +61,22 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#f8fafc;}
 .sneg{color:var(--rojo);font-family:'JetBrains Mono',monospace;font-weight:700;}
 .scero{color:var(--gc);font-family:'JetBrains Mono',monospace;}
 .totrow td{background:#f8fafc!important;font-weight:700;border-top:2px solid var(--borde);}
+
+/* ── TABLA MODO SUB-ACTIVIDAD ÚNICA (sin columna nombre) ── */
+.tabla-subact-unica { width:auto; margin:0 auto; }
+.tabla-subact-unica th, .tabla-subact-unica td { padding:10px 14px; }
+.subact-title {
+  text-align:center;
+  font-size:12px;
+  font-weight:700;
+  color:var(--azulm);
+  margin-bottom:12px;
+  padding:10px 16px;
+  background:#eff6ff;
+  border-radius:8px;
+  border:1.5px solid #bfdbfe;
+}
+
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center;}
 .overlay.on{display:flex;}
 .modal{background:white;border-radius:16px;padding:28px;width:520px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .2s ease;}
@@ -110,7 +137,7 @@ textarea.finput{resize:vertical;min-height:85px;font-size:13px;}
       <div class="stat-lbl">Usuario activo</div>
       <div class="stat-val" style="font-size:13px;margin-top:6px;">
         <select id="usuarioSel" style="padding:5px 8px;border:1.5px solid var(--borde);border-radius:6px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--azul);outline:none;background:white;width:100%;">
-          <option>Julio Baz&aacute;n</option><option>Wilson Gastulo</option><option>Jefe GCPS</option>
+          <option>Julio Bazán</option><option>Wilson Gastulo</option><option>Jefe GCPS</option>
         </select>
       </div>
       <div class="stat-sub">selecciona tu nombre</div>
@@ -340,6 +367,11 @@ function renderTablas(){
   var filtroSG = document.getElementById('selSG').value;
   var filtroAct = document.getElementById('selAct').value;
   var filtroSub = document.getElementById('selSubAct').value;
+
+  // ── MODO SUB-ACTIVIDAD ÚNICA: sin columna nombre, tabla centrada ──
+  // Se activa cuando hay una sub actividad específica seleccionada
+  var modoUnico = filtroSub && filtroSub !== '';
+
   var html = '';
   var gers = filtroG ? [filtroG] : Object.keys(DATOS);
   gers.forEach(function(g){
@@ -349,57 +381,187 @@ function renderTablas(){
       if (filtroAct) items = items.filter(function(d){ return d.act === filtroAct; });
       if (filtroSub) items = items.filter(function(d){ return d.sub === filtroSub; });
       if (!items.length) return;
-      html += renderBloque(g, sg, items);
+      if (modoUnico) {
+        html += renderBloqueUnico(g, sg, items);
+      } else {
+        html += renderBloque(g, sg, items);
+      }
     });
   });
   document.getElementById('tablasPpto').innerHTML = html || '<div class="empty">Selecciona una gerencia para ver las actividades.</div>';
 }
 
+/* ── EJECUCIÓN: tabla sin nombre, TOTAL al final de cada sección ── */
+function renderBloque(g, sg, items){ return _renderEjecucion(g, sg, items); }
+function renderBloqueUnico(g, sg, items){ return _renderEjecucion(g, sg, items); }
 
-function renderBloque(g, sg, items){
+function _renderEjecucion(g, sg, items){
   var titulo = g + (sg && sg !== 'GENERAL' ? ' — ' + sg : '');
-  var html = '<div class="gblock"><div class="gtitle">EJECUCIÓN PRESUPUESTAL 2026 — ' + titulo;
-  html += '<span>&#x1F4B5; Haz clic en los montos verdes para registrar</span></div>';
-  html += '<div style="overflow-x:auto;"><table style="min-width:600px;"><thead><tr>';
-  html += '<th class="izq" rowspan="2" style="min-width:220px;">DENOMINACIÓN SUB ACTIVIDAD</th>';
-  html += '<th class="hprog" rowspan="2">TOTAL PROG.</th>';
-  CONCEPTOS.forEach(function(con){ html += '<th class="hejec">' + con + '</th>'; });
-  html += '<th class="hejec">TOTAL EJEC.</th>';
-  html += '<th class="hsaldo" rowspan="2">SALDO</th>';
+  var N = CONCEPTOS.length;
+
+  var html = '<div class="gblock">';
+  html += '<div class="gtitle">EJECUCIÓN PRESUPUESTAL 2026 — ' + titulo;
+  html += '<span>&#x1F4B5; Haz clic en los montos verdes para registrar</span>';
+  html += '</div>';
+  html += '<div style="overflow-x:auto;"><table><thead>';
+
+  // Fila 1: grupos — partidas primero, TOTAL al final
+  html += '<tr>';
+  html += '<th colspan="'+(N+1)+'" style="background:#fef9c3;color:#854d0e;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #fbbf24;border-left:3px solid #fbbf24;padding:7px;">📋 PROGRAMACIÓN</th>';
+  html += '<th colspan="'+(N+1)+'" style="background:#dcfce7;color:#166534;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #34d399;border-left:3px solid #34d399;padding:7px;">💰 EJECUCIÓN</th>';
+  html += '<th colspan="'+(N+1)+'" style="background:#ffedd5;color:#c2410c;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #f97316;border-left:3px solid #f97316;padding:7px;">📊 SALDO PRESUPUESTAL</th>';
+  html += '</tr>';
+
+  // Fila 2: partidas primero, TOTAL al final
+  html += '<tr>';
+  CONCEPTOS.forEach(function(c){ html += '<th class="hprog" style="border-left:3px solid #fbbf24;min-width:90px;">'+c+'</th>'; });
+  html += '<th class="hprog" style="min-width:80px;font-weight:800;">TOTAL</th>';
+
+  CONCEPTOS.forEach(function(c){ html += '<th class="hejec" style="border-left:3px solid #34d399;min-width:90px;">'+c+'</th>'; });
+  html += '<th class="hejec" style="min-width:80px;font-weight:800;">TOTAL</th>';
+
+  CONCEPTOS.forEach(function(c){ html += '<th class="hsaldo" style="border-left:3px solid #f97316;min-width:90px;">'+c+'</th>'; });
+  html += '<th class="hsaldo" style="min-width:80px;font-weight:800;">TOTAL</th>';
   html += '</tr></thead><tbody>';
-  var totP = 0;
-  var totE = new Array(CONCEPTOS.length).fill(0);
-  items.forEach(function(d, di){
+
+  var totP = new Array(N).fill(0);
+  var totE = new Array(N).fill(0);
+
+  items.forEach(function(d){
     var eArr = CONCEPTOS.map(function(con){ return getEjec(g, sg, d.sub, con); });
     var tP = d.prog.reduce(function(a,b){return a+b;}, 0);
     var tE = eArr.reduce(function(a,b){return a+b;}, 0);
-    totP += tP;
+    var tS = tP - tE;
+    d.prog.forEach(function(v,i){ totP[i] += v; });
     eArr.forEach(function(v,i){ totE[i] += v; });
-    var saldo = tP - tE;
-    var sc = saldo > 0 ? 'spos' : saldo < 0 ? 'sneg' : 'scero';
-    var subShort = d.sub.length > 70 ? d.sub.substring(0,70) + '...' : d.sub;
+
+    var scTotal = tS > 0 ? 'spos' : tS < 0 ? 'sneg' : 'scero';
+    var safeG   = btoa(unescape(encodeURIComponent(g)));
+    var safeSG  = btoa(unescape(encodeURIComponent(sg)));
+    var safeSub = btoa(unescape(encodeURIComponent(d.sub)));
+
     html += '<tr>';
-    html += '<td class="izq" title="' + d.sub.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;') + '">' + subShort + '</td>';
-    html += '<td><span class="pnum" style="font-weight:700;">' + fmtN(tP) + '</span></td>';
+    // PROG: partidas + total al final
+    d.prog.forEach(function(v){ html += '<td style="border-left:3px solid #fbbf24;"><span class="pnum">'+(v?fmtN(v):'-')+'</span></td>'; });
+    html += '<td><span class="pnum" style="font-weight:800;">'+(tP?fmtN(tP):'-')+'</span></td>';
+    // EJEC: partidas + total al final
     eArr.forEach(function(e, ci){
-      var safeG = btoa(unescape(encodeURIComponent(g)));
-      var safeSG = btoa(unescape(encodeURIComponent(sg)));
-      var safeSub = btoa(unescape(encodeURIComponent(d.sub)));
-      html += '<td><span class="enum" data-g="'+safeG+'" data-sg="'+safeSG+'" data-sub="'+safeSub+'" data-ci="'+ci+'" data-prog="'+d.prog[ci]+'" data-ejec="'+e+'" onclick="clickEnum(this)">' + fmtN(e) + '</span></td>';
+      html += '<td style="border-left:3px solid #34d399;"><span class="enum" data-g="'+safeG+'" data-sg="'+safeSG+'" data-sub="'+safeSub+'" data-ci="'+ci+'" data-prog="'+d.prog[ci]+'" data-ejec="'+e+'" onclick="clickEnum(this)">'+fmtN(e)+'</span></td>';
     });
-    html += '<td><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">' + fmtN(tE) + '</span></td>';
-    html += '<td><span class="' + sc + '">' + fmtN(saldo) + '</span></td>';
+    html += '<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:#166534;">'+fmtN(tE)+'</span></td>';
+    // SALDO: partidas + total al final
+    d.prog.forEach(function(v, ci){
+      var s = v - eArr[ci];
+      var sc = s > 0 ? 'spos' : s < 0 ? 'sneg' : 'scero';
+      html += '<td style="border-left:3px solid #f97316;"><span class="'+sc+'">'+(v?fmtN(s):'-')+'</span></td>';
+    });
+    html += '<td><span class="'+scTotal+'" style="font-weight:800;">'+fmtN(tS)+'</span></td>';
     html += '</tr>';
   });
-  var ttE = totE.reduce(function(a,b){return a+b;}, 0);
-  var ttS = totP - ttE;
+
+  // Fila total — línea roja arriba
+  var ttP = totP.reduce(function(a,b){return a+b;},0);
+  var ttE = totE.reduce(function(a,b){return a+b;},0);
+  var ttS = ttP - ttE;
   var sc2 = ttS > 0 ? 'spos' : ttS < 0 ? 'sneg' : 'scero';
-  html += '<tr class="totrow"><td class="izq">TOTAL ' + titulo + '</td>';
-  html += '<td><span class="pnum" style="font-weight:700;color:var(--azul);">' + fmtN(totP) + '</span></td>';
-  totE.forEach(function(v){ html += '<td><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">' + fmtN(v) + '</span></td>'; });
-  html += '<td><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:var(--verde);">' + fmtN(ttE) + '</span></td>';
-  html += '<td><span class="' + sc2 + '" style="font-size:13px;">' + fmtN(ttS) + '</span></td>';
-  html += '</tr></tbody></table></div></div>';
+  var ts = 'border-top:2.5px solid #dc2626;background:#fff5f5;font-weight:800;';
+
+  html += '<tr>';
+  totP.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #fbbf24;"><span class="pnum" style="font-weight:700;">'+fmtN(v)+'</span></td>'; });
+  html += '<td style="'+ts+'"><span class="pnum" style="font-weight:800;color:var(--azul);">'+fmtN(ttP)+'</span></td>';
+  totE.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #34d399;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">'+fmtN(v)+'</span></td>'; });
+  html += '<td style="'+ts+'"><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:var(--verde);">'+fmtN(ttE)+'</span></td>';
+  totP.forEach(function(v,i){
+    var s = v - totE[i];
+    var col = s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';
+    html += '<td style="'+ts+'border-left:3px solid #f97316;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';
+  });
+  html += '<td style="'+ts+'"><span class="'+sc2+'" style="font-size:13px;font-weight:800;">'+fmtN(ttS)+'</span></td>';
+  html += '</tr>';
+
+  html += '</tbody></table></div></div>';
+  return html;
+}
+
+/* ── VISTA: con columna DENOMINACIÓN + PROG + EJEC + SALDO completo ── */
+function _renderTablaCompleta(g, sg, items, soloLectura){
+  var titulo = g + (sg && sg !== 'GENERAL' ? ' — ' + sg : '');
+  var N = CONCEPTOS.length;
+
+  var html = '<div class="gblock">';
+  html += '<div class="gtitle">'+titulo;
+  html += '<span style="background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;">Solo lectura</span>';
+  html += '</div>';
+  html += '<div style="overflow-x:auto;"><table><thead>';
+
+  // Fila 1: grupos
+  html += '<tr>';
+  html += '<th class="izq" rowspan="2" style="min-width:240px;white-space:normal;line-height:1.3;">DENOMINACIÓN SUB ACTIVIDAD</th>';
+  html += '<th colspan="'+(N+1)+'" style="background:#fef9c3;color:#854d0e;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #fbbf24;border-left:3px solid #fbbf24;padding:7px;">📋 PROGRAMACIÓN</th>';
+  html += '<th colspan="'+(N+1)+'" style="background:#dcfce7;color:#166534;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #34d399;border-left:3px solid #34d399;padding:7px;">💰 EJECUCIÓN</th>';
+  html += '<th colspan="'+(N+1)+'" style="background:#ffedd5;color:#c2410c;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #f97316;border-left:3px solid #f97316;padding:7px;">📊 SALDO PRESUPUESTAL</th>';
+  html += '</tr>';
+
+  // Fila 2: partidas + total al final
+  html += '<tr>';
+  CONCEPTOS.forEach(function(c){ html += '<th class="hprog" style="border-left:3px solid #fbbf24;min-width:90px;">'+c+'</th>'; });
+  html += '<th class="hprog" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  CONCEPTOS.forEach(function(c){ html += '<th class="hejec" style="border-left:3px solid #34d399;min-width:90px;">'+c+'</th>'; });
+  html += '<th class="hejec" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  CONCEPTOS.forEach(function(c){ html += '<th class="hsaldo" style="border-left:3px solid #f97316;min-width:90px;">'+c+'</th>'; });
+  html += '<th class="hsaldo" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  html += '</tr></thead><tbody>';
+
+  var totP = new Array(N).fill(0);
+  var totE = new Array(N).fill(0);
+
+  items.forEach(function(d){
+    var eArr = CONCEPTOS.map(function(con){ return getEjec(g, sg, d.sub, con); });
+    var tP = d.prog.reduce(function(a,b){return a+b;}, 0);
+    var tE = eArr.reduce(function(a,b){return a+b;}, 0);
+    var tS = tP - tE;
+    d.prog.forEach(function(v,i){ totP[i] += v; });
+    eArr.forEach(function(v,i){ totE[i] += v; });
+    var scTotal = tS > 0 ? 'spos' : tS < 0 ? 'sneg' : 'scero';
+    var subShort = d.sub.length > 75 ? d.sub.substring(0,75)+'...' : d.sub;
+
+    html += '<tr>';
+    html += '<td class="izq" title="'+d.sub.replace(/"/g,'&quot;')+'" style="white-space:normal;line-height:1.4;">'+subShort+'</td>';
+    d.prog.forEach(function(v){ html += '<td style="border-left:3px solid #fbbf24;"><span class="pnum">'+(v?fmtN(v):'-')+'</span></td>'; });
+    html += '<td><span class="pnum" style="font-weight:800;">'+(tP?fmtN(tP):'-')+'</span></td>';
+    eArr.forEach(function(v){ html += '<td style="border-left:3px solid #34d399;"><span class="mono" style="color:#166534;">'+fmtN(v)+'</span></td>'; });
+    html += '<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:#166534;">'+fmtN(tE)+'</span></td>';
+    d.prog.forEach(function(v,ci){
+      var s = v - eArr[ci];
+      var sc = s > 0 ? 'spos' : s < 0 ? 'sneg' : 'scero';
+      html += '<td style="border-left:3px solid #f97316;"><span class="'+sc+'">'+(v?fmtN(s):'-')+'</span></td>';
+    });
+    html += '<td><span class="'+scTotal+'" style="font-weight:800;">'+fmtN(tS)+'</span></td>';
+    html += '</tr>';
+  });
+
+  // Total con línea roja
+  var ttP = totP.reduce(function(a,b){return a+b;},0);
+  var ttE = totE.reduce(function(a,b){return a+b;},0);
+  var ttS = ttP - ttE;
+  var sc2 = ttS > 0 ? 'spos' : ttS < 0 ? 'sneg' : 'scero';
+  var ts = 'border-top:2.5px solid #dc2626;background:#fff5f5;font-weight:800;';
+
+  html += '<tr>';
+  html += '<td class="izq" style="'+ts+'color:#dc2626;font-size:10px;letter-spacing:.3px;">— TOTAL</td>';
+  totP.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #fbbf24;"><span class="pnum" style="font-weight:700;">'+fmtN(v)+'</span></td>'; });
+  html += '<td style="'+ts+'"><span class="pnum" style="font-weight:800;color:var(--azul);">'+fmtN(ttP)+'</span></td>';
+  totE.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #34d399;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">'+fmtN(v)+'</span></td>'; });
+  html += '<td style="'+ts+'"><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:var(--verde);">'+fmtN(ttE)+'</span></td>';
+  totP.forEach(function(v,i){
+    var s = v - totE[i];
+    var col = s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';
+    html += '<td style="'+ts+'border-left:3px solid #f97316;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';
+  });
+  html += '<td style="'+ts+'"><span class="'+sc2+'" style="font-size:13px;font-weight:800;">'+fmtN(ttS)+'</span></td>';
+  html += '</tr>';
+
+  html += '</tbody></table></div></div>';
   return html;
 }
 
@@ -412,9 +574,6 @@ function clickEnum(el){
   var ejec = parseFloat(el.getAttribute('data-ejec'));
   abrirModal(g, sg, sub, ci, prog, ejec);
 }
-
-
-function escJS(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
 function abrirModal(g,sg,sub,ci,prog,ejec){
   modalCtx={g:g,sg:sg,sub:sub,ci:ci};
@@ -444,7 +603,6 @@ function guardarRegistro(){
   if(!sust){al.className='malerta err';al.textContent='El sustento es obligatorio.';return;}
   var btn=document.getElementById('bok'),sp=document.getElementById('spin'),tx=document.getElementById('boktxt');
   btn.disabled=true;sp.style.display='block';tx.textContent='Guardando...';
-  // Find actividad operativa from DATOS
   var actOp = '';
   if(DATOS[modalCtx.g] && DATOS[modalCtx.g][modalCtx.sg]){
     var found = DATOS[modalCtx.g][modalCtx.sg].filter(function(d){return d.sub===modalCtx.sub;});
@@ -495,48 +653,8 @@ function renderVista(){
     var sgs=fsg&&fsg!=='TODAS'?[fsg]:Object.keys(DATOS[g]||{});
     sgs.forEach(function(sg){
       var items=DATOS[g][sg]||[];
-      var titulo=g+(sg&&sg!=='GENERAL'?' — '+sg:'');
-      html+='<div class="gblock"><div class="gtitle">'+titulo;
-      html+='<span style="background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;">Solo lectura</span></div>';
-      html+='<div style="overflow-x:auto;"><table style="min-width:700px;"><thead><tr>';
-      html+='<th class="izq" rowspan="2">DENOMINACIÓN SUB ACTIVIDAD</th>';
-      CONCEPTOS.forEach(function(c){html+='<th class="hprog">'+c+'</th>';});
-      html+='<th class="hprog">TOTAL</th>';
-      CONCEPTOS.forEach(function(c){html+='<th class="hejec">'+c+'</th>';});
-      html+='<th class="hejec">TOTAL</th>';
-      CONCEPTOS.forEach(function(c){html+='<th class="hsaldo">'+c+'</th>';});
-      html+='<th class="hsaldo">TOTAL</th>';
-      html+='</tr></thead><tbody>';
-      var totP=new Array(CONCEPTOS.length).fill(0),totE=new Array(CONCEPTOS.length).fill(0);
-      items.forEach(function(d){
-        var eArr=CONCEPTOS.map(function(c){return getEjec(g,sg,d.sub,c);});
-        var tP=d.prog.reduce(function(a,b){return a+b;},0);
-        var tE=eArr.reduce(function(a,b){return a+b;},0);
-        d.prog.forEach(function(v,i){totP[i]+=v;}); eArr.forEach(function(v,i){totE[i]+=v;});
-        var saldo=tP-tE; var sc=saldo>0?'spos':saldo<0?'sneg':'scero';
-        var ss=d.sub.length>60?d.sub.substring(0,60)+'...':d.sub;
-        html+='<tr><td class="izq" title="'+d.sub.replace(/"/g,'')+'">'+ss+'</td>';
-        d.prog.forEach(function(v){html+='<td><span class="pnum">'+(v?fmtN(v):'-')+'</span></td>';});
-        html+='<td><span class="pnum" style="font-weight:700;">'+fmtN(tP)+'</span></td>';
-        eArr.forEach(function(v){html+='<td><span class="mono" style="color:#166534;">'+fmtN(v)+'</span></td>';});
-        html+='<td><span class="mono" style="color:#166534;">'+fmtN(tE)+'</span></td>';
-        CONCEPTOS.forEach(function(c,ci){
-          var s=d.prog[ci]-eArr[ci]; var col=s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';
-          html+='<td><span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';
-        });
-        html+='<td><span class="'+sc+'">'+fmtN(saldo)+'</span></td></tr>';
-      });
-      var ttP=totP.reduce(function(a,b){return a+b;},0),ttE=totE.reduce(function(a,b){return a+b;},0);
-      var ttS=ttP-ttE; var sc2=ttS>0?'spos':ttS<0?'sneg':'scero';
-      html+='<tr class="totrow"><td class="izq">TOTAL '+titulo+'</td>';
-      totP.forEach(function(v){html+='<td><span class="pnum" style="font-weight:700;">'+fmtN(v)+'</span></td>';});
-      html+='<td><span class="pnum" style="font-weight:700;color:var(--azul);">'+fmtN(ttP)+'</span></td>';
-      totE.forEach(function(v){html+='<td><span class="mono" style="color:var(--verde);">'+fmtN(v)+'</span></td>';});
-      html+='<td><span class="mono" style="color:var(--verde);">'+fmtN(ttE)+'</span></td>';
-      var totSaldo=totP.map(function(p,i){return p-totE[i];});
-      totSaldo.forEach(function(s){var col=s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';html+='<td><span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';});
-      html+='<td><span class="'+sc2+'" style="font-size:13px;">'+fmtN(ttS)+'</span></td>';
-      html+='</tr></tbody></table></div></div>';
+      if(!items.length) return;
+      html += _renderTablaCompleta(g, sg, items, true);
     });
   });
   document.getElementById('vistaBody').innerHTML=html||'<div class="empty">Sin datos.</div>';
@@ -566,7 +684,7 @@ function cargarHistorial(){
       h+='<td><span class="mono">'+fmt(r.monto)+'</span></td>';
       h+='<td style="font-size:11px;color:#64748b;max-width:200px;">'+r.sustento+'</td>';
       h+='<td style="font-size:11px;">'+r.usuario+'</td>';
-      h+='<td><button onclick="eliminar(\''+r.id+'\')" style="padding:4px 8px;background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">&#x1F5D1; Borrar</button></td>';
+      h+='<td><button onclick="eliminar(\''+r.id+'\')" style="padding:4px 8px;background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">🗑 Borrar</button></td>';
       h+='</tr>';
     });
     h+='</tbody></table>';
