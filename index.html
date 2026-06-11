@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ejecución Presupuestal POI 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--azul:#1a3a5c;--azulm:#2563a8;--azulc:#3b82f6;--verde:#059669;--verdec:#10b981;--naranja:#d97706;--rojo:#dc2626;--gs:#1e293b;--gm:#334155;--gc:#94a3b8;--bg:#f1f5f9;--borde:#e2e8f0;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -31,52 +32,22 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--gs);}
 .gblock{background:white;border-radius:14px;padding:22px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow-x:auto;}
 .gtitle{font-size:13px;font-weight:700;color:var(--azul);border-left:4px solid var(--azulc);padding-left:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 .gtitle span{font-size:11px;font-weight:400;color:var(--gc);}
-
-/* ── TABLA PRINCIPAL ── */
 table{width:100%;border-collapse:collapse;font-size:11px;min-width:600px;}
 th{background:#f8fafc;padding:7px 8px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--gc);border-bottom:2px solid var(--borde);white-space:nowrap;}
 th.izq{text-align:left;}
 td{padding:8px;border-bottom:1px solid var(--borde);text-align:right;vertical-align:middle;font-size:11px;}
 td.izq{text-align:left;font-weight:600;font-size:11px;color:var(--gm);max-width:280px;}
 tr:last-child td{border-bottom:none;} tr:hover td{background:#f8fafc;}
-
-/* GRUPOS DE COLUMNAS — separadores visuales */
-.sep-prog th, .sep-prog td { border-left: 3px solid #fbbf24 !important; }
-.sep-ejec th, .sep-ejec td { border-left: 3px solid #34d399 !important; }
-.sep-saldo th, .sep-saldo td { border-left: 3px solid #f97316 !important; }
-
-/* Cabeceras de grupo */
-th.grp-prog{background:#fef9c3!important;color:#854d0e!important;font-size:10px;font-weight:800;text-transform:uppercase;border-bottom:2px solid #fbbf24!important;}
-th.grp-ejec{background:#dcfce7!important;color:#166534!important;font-size:10px;font-weight:800;border-bottom:2px solid #34d399!important;}
-th.grp-saldo{background:#ffedd5!important;color:#c2410c!important;font-size:10px;font-weight:800;border-bottom:2px solid #f97316!important;}
-
 .hprog{background:#fef9c3!important;color:#854d0e!important;}
 .hejec{background:#dcfce7!important;color:#166534!important;}
 .hsaldo{background:#ffedd5!important;color:#c2410c!important;}
-
+.hinfo{background:#eff6ff!important;color:#1e40af!important;}
 .pnum{font-family:'JetBrains Mono',monospace;color:#6b7280;font-size:11px;}
 .enum{font-family:'JetBrains Mono',monospace;font-weight:700;color:#166534;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;border:1.5px solid #86efac;background:#dcfce7;transition:.15s;display:inline-block;min-width:48px;text-align:center;}
 .enum:hover{background:#bbf7d0;border-color:#22c55e;transform:scale(1.08);}
 .spos{color:#c2410c;font-family:'JetBrains Mono',monospace;font-weight:700;}
 .sneg{color:var(--rojo);font-family:'JetBrains Mono',monospace;font-weight:700;}
 .scero{color:var(--gc);font-family:'JetBrains Mono',monospace;}
-.totrow td{background:#f8fafc!important;font-weight:700;border-top:2px solid var(--borde);}
-
-/* ── TABLA MODO SUB-ACTIVIDAD ÚNICA (sin columna nombre) ── */
-.tabla-subact-unica { width:auto; margin:0 auto; }
-.tabla-subact-unica th, .tabla-subact-unica td { padding:10px 14px; }
-.subact-title {
-  text-align:center;
-  font-size:12px;
-  font-weight:700;
-  color:var(--azulm);
-  margin-bottom:12px;
-  padding:10px 16px;
-  background:#eff6ff;
-  border-radius:8px;
-  border:1.5px solid #bfdbfe;
-}
-
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center;}
 .overlay.on{display:flex;}
 .modal{background:white;border-radius:16px;padding:28px;width:520px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .2s ease;}
@@ -111,6 +82,11 @@ textarea.finput{resize:vertical;min-height:85px;font-size:13px;}
 .fsel{padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-family:'Sora',sans-serif;font-size:12px;color:var(--gs);outline:none;cursor:pointer;}
 .empty{text-align:center;padding:40px;color:var(--gc);}
 .btncsv{padding:7px 14px;background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;border-radius:8px;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+/* columnas info */
+.td-oe{font-size:10px;font-weight:800;color:#1e40af;white-space:nowrap;text-align:center;}
+.td-obj{font-size:10px;color:#334155;max-width:180px;line-height:1.4;white-space:normal;}
+.td-ae{font-size:10px;font-weight:800;color:#1e40af;white-space:nowrap;text-align:center;}
+.td-acc{font-size:10px;color:#334155;max-width:180px;line-height:1.4;white-space:normal;}
 </style>
 </head>
 <body>
@@ -131,7 +107,7 @@ textarea.finput{resize:vertical;min-height:85px;font-size:13px;}
 <div class="main">
   <div class="stats">
     <div class="stat"><div class="stat-lbl">Total Programado</div><div class="stat-val" id="s1">S/ —</div><div class="stat-sub">presupuesto total</div></div>
-    <div class="stat v"><div class="stat-lbl">Total Ejecutado + Comprometido</div><div class="stat-val" id="s2">S/ —</div><div class="stat-sub">monto acumulado</div></div>
+    <div class="stat v"><div class="stat-lbl">Total Ejecutado</div><div class="stat-val" id="s2">S/ —</div><div class="stat-sub">monto acumulado</div></div>
     <div class="stat n"><div class="stat-lbl">Saldo Disponible</div><div class="stat-val" id="s3">S/ —</div><div class="stat-sub">programado - ejecutado</div></div>
     <div class="stat r">
       <div class="stat-lbl">Usuario activo</div>
@@ -143,28 +119,17 @@ textarea.finput{resize:vertical;min-height:85px;font-size:13px;}
       <div class="stat-sub">selecciona tu nombre</div>
     </div>
   </div>
-
-  <!-- FILTROS ENCADENADOS -->
   <div class="filtros-bar">
     <label>&#x1F4CB; Filtrar:</label>
     <select id="selGer" class="fsel2" onchange="onGerChange()">
       <option value="">— Seleccionar Gerencia —</option>
-      <option value="GPNAIS">GPNAIS</option>
-      <option value="GSAM">GSAM</option>
-      <option value="GAPR">GAPR</option>
-      <option value="OIIS">OIIS</option>
+      <option value="GPNAIS">GPNAIS</option><option value="GSAM">GSAM</option>
+      <option value="GAPR">GAPR</option><option value="OIIS">OIIS</option>
     </select>
-    <select id="selSG" class="fsel2" onchange="onSGChange()" style="display:none;">
-      <option value="">— Sub Gerencia —</option>
-    </select>
-    <select id="selAct" class="fsel2" onchange="onActChange()" style="display:none;">
-      <option value="">— Actividad Operativa —</option>
-    </select>
-    <select id="selSubAct" class="fsel2" onchange="renderTablas()" style="display:none;">
-      <option value="">— Sub Actividad —</option>
-    </select>
+    <select id="selSG" class="fsel2" onchange="onSGChange()" style="display:none;"><option value="">— Sub Gerencia —</option></select>
+    <select id="selAct" class="fsel2" onchange="onActChange()" style="display:none;"><option value="">— Actividad Operativa —</option></select>
+    <select id="selSubAct" class="fsel2" onchange="renderTablas()" style="display:none;"><option value="">— Sub Actividad —</option></select>
   </div>
-
   <div id="tablasPpto"></div>
 </div>
 </div>
@@ -202,11 +167,14 @@ textarea.finput{resize:vertical;min-height:85px;font-size:13px;}
       <option value="GPNAIS">GPNAIS</option><option value="GSAM">GSAM</option>
       <option value="GAPR">GAPR</option><option value="OIIS">OIIS</option>
     </select>
-    <select id="selVistaSG" class="fsel2" onchange="renderVista()" style="display:none;">
-      <option value="TODAS">— Todas las sub gerencias —</option>
-    </select>
+    <select id="selVistaSG" class="fsel2" onchange="onVistaSGChange()" style="display:none;"><option value="TODAS">— Todas las sub gerencias —</option></select>
+    <select id="selVistaAct" class="fsel2" onchange="onVistaActChange()" style="display:none;"><option value="TODAS">— Todas las actividades —</option></select>
+    <select id="selVistaSub" class="fsel2" onchange="renderVista()" style="display:none;"><option value="TODAS">— Sub Actividad —</option></select>
   </div>
   <div id="vistaBody"></div>
+  <div id="vista-print-bar" style="display:none;text-align:center;padding:16px 0 8px;">
+    <button onclick="descargarExcel()" style="padding:12px 32px;background:linear-gradient(135deg,#166534,#059669);color:white;border:none;border-radius:10px;font-family:Sora,sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,.3);display:inline-flex;align-items:center;gap:8px;">📥 Descargar Excel — Solo lo seleccionado</button>
+  </div>
 </div>
 </div>
 
@@ -247,24 +215,23 @@ textarea.finput{resize:vertical;min-height:85px;font-size:13px;}
 </div>
 
 <script>
-var SURL = 'https://krikgncyptyjjutzaufz.supabase.co';
-var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyaWtnbmN5cHR5amp1dHphdWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzYzOTYsImV4cCI6MjA5NjE1MjM5Nn0.8Kzgpf8UhASf-hgN7jix-82ZeNsUpE7R-EF6zpZCZCI';
+var SURL='https://krikgncyptyjjutzaufz.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyaWtnbmN5cHR5amp1dHphdWZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzYzOTYsImV4cCI6MjA5NjE1MjM5Nn0.8Kzgpf8UhASf-hgN7jix-82ZeNsUpE7R-EF6zpZCZCI';
+var CONCEPTOS=['Viaticos','Pasajes','Locadores','Alimentos','Otros Servicios'];
 
-var CONCEPTOS = ['Viaticos','Pasajes','Locadores','Alimentos','Otros Servicios'];
-
-var DATOS = {"GPNAIS":{"SGPE":[{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualización de los requisitos técnicos para la implementación de las UPSS Ocupacional en EsSalud","prog":[0,0,24000,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualizar el documento técnico de fortalecimiento de los cuidados críticos en el Seguro Social de Salud","prog":[0,0,40000,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualizar la Normativa para la organización y funcionamiento del sistema de emergencias y urgencias del Seguro Social de Salud","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualizar las Normas para optimizar la distribución de las camas hospitalarias en EsSalud","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud","sub":"Realizar asistencia Técnica Virtual sobre Enfermedades Raras y Huérfanas","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud","sub":"Realizar asistencia Técnica Virtual sobre especialidades de apoyo en Salud Ocupacional","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud","sub":"Realizar asistencia Técnica Virtual sobre la normativa de Emergencias","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud","sub":"Realizar asistencia Técnica Virtual sobre la normativa de Cuidados Críticos - Cuidados Intensivos","prog":[0,0,0,0,0]}],"SGNAPS":[{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Documentos normativos: Criterios de priorización del parto por cesárea","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Documentos normativos: Manejo no farmacológico HTA, DM, sobrepeso y Obesidad","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Documentos normativos: Manual del Cuidado Integral de la Salud Mental en EsSalud","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Documentos normativos: Norma para la Atención Integral de la TB en EsSalud","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual y/o presencial: Salud Materna","prog":[10880,2131,0,5900,2000]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual y/o presencial: Análisis de casos de muerte materna","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual y/o presencial: HTA-DM","prog":[7100,4060,0,5808,2246]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual y/o presencial: Salud Mental","prog":[2560,0,0,3000,800]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual y/o presencial: VIH/SIDA","prog":[2500,0,0,2300,800]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual y/o presencial: Prevención y Control de la TB","prog":[3112,0,0,2400,800]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual y/o presencial: Enfermedad Osteomuscular y tejido conectivo","prog":[0,0,0,2700,0]}],"SGNADYT":[{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Documento normativo: Actualización Manual Procedimientos Anatomía Patológica 2026","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualización Manual obtención y uso racional de la sangre en ESSALUD","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Documento normativo: Actualización Manual Procedimientos Psicología MAPRO-2026","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Documento normativo: Actualización Manual Procedimientos Trabajo Social MAPRO-2026","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Formulación DTO Manual del Programa de Higiene y Saneamiento en Nutrición en EsSalud","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Guía actividades asistenciales Químicos Farmacéuticos ESSALUD","prog":[0,0,34000,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual: Implementación Formatos Psicología en ESSI","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual: Implementación Formatos Trabajo Social en ESSI","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica: Manual Prestaciones Psicología EsSalud 2026","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica: Manual Prestaciones Trabajo Social EsSalud 2026","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual: Manual obtención sangre y componentes ESSALUD","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica: Manual Prestaciones Anatomía Patológica EsSalud","prog":[0,0,0,3000,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica: Manual Programa Higiene y Saneamiento Nutrición EsSalud","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud","sub":"Asistencia Técnica Virtual sobre gestión de Servicios/Unidades de Nutrición","prog":[0,0,0,0,0]}],"SGNSS":[{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualización Directiva Disposiciones para la Atención Ambulatoria en IPRESS de ESSALUD","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualización Directiva Norma para las Prestaciones de Salud de Atención Domiciliaria en ESSALUD","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualización Directiva Norma para la Referencia y Contrarreferencia en el Seguro Social de Salud","prog":[0,0,0,1500,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Aprobar Directiva Acceso, Registro y Uso Información en el Sistema ESSI de ESSALUD","prog":[0,0,0,0,0]},{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Formular Norma para la conformación y funcionamiento de las redes funcionales de salud","prog":[0,0,0,0,0]},{"act":"Supervisión a las IPRESS en el cumplimiento de Normas de Atención Integral de Salud","sub":"Supervisiones actividades preparatorias categorización o recategorización de IPRESS de ESSALUD","prog":[5760,6915,0,0,0]},{"act":"Brindar asistencia técnica a órganos desconcentrados para mejorar prestaciones de Salud","sub":"Asistencias Técnicas sobre actividades preparatorias de categorización/recategorización de IPRESS","prog":[0,0,0,0,0]},{"act":"Brindar asistencia técnica a órganos desconcentrados para mejorar prestaciones de Salud","sub":"Realizar asistencia técnica virtual de documentos normativos","prog":[0,0,0,0,0]}]},"OIIS":{"GENERAL":[{"act":"Formulación y/o Actualización de Documentos Normativos","sub":"Actualizar documentos normativos de Inteligencia e Información Sanitaria: Actualización Directiva Vigilancia de Brotes y EVISAP","prog":[0,0,0,0,0]},{"act":"Asistencia Técnica para el Fortalecimiento de la Red de Inteligencia Sanitaria","sub":"Realizar asistencia técnica presencial: 04 Reuniones Macrorregionales, 01 Reunión nacional Red de Inteligencia Sanitaria","prog":[9160,6000,0,16231,25700]},{"act":"Desarrollar e implementar herramientas para análisis y difusión de información epidemiológica","sub":"Desarrollar e implementar tableros de información epidemiológica: Brotes/Contingencias/Gestión Mortalidad","prog":[0,0,0,0,0]},{"act":"Desarrollo de Estudios Epidemiológicos","sub":"Elaboración de Estudios de Prevalencia Puntual de Infecciones Intrahospitalarias","prog":[7360,4400,0,0,0]}]},"GSAM":{"GENERAL":[{"act":"Aprobacion de documentos normativos de Salud Ambiental","sub":"Plan de Trabajo: Abordaje Integral Población Asegurada Expuesta a Metales Pesados y Sustancias Químicas Tóxicas","prog":[0,0,33500,0,0]},{"act":"Aprobacion de documentos normativos de Salud Ambiental","sub":"Directiva de Gestión y Manejo de Residuos Sólidos en el Seguro Social de Salud - ESSALUD","prog":[0,0,0,0,0]},{"act":"Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional","sub":"Seguimiento implementación Plan de Trabajo: Abordaje Integral Población Expuesta a Metales Pesados","prog":[4480,4690,0,0,0]},{"act":"Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional","sub":"Evaluación del control y manejo de residuos sólidos en las IPRESS de ESSALUD","prog":[1600,0,0,0,0]},{"act":"Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional","sub":"Evaluación de las disposiciones para la limpieza y desinfección de ambientes en las IPRESS de ESSALUD","prog":[2560,3600,0,0,0]},{"act":"Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional","sub":"Normas de Bioseguridad en el Seguro Social de Salud - ESSALUD","prog":[3840,4800,0,0,0]},{"act":"Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional","sub":"Seguimiento Normas ISO 14001-2015 Gestión Ambiental en hospitales Alcantara, Mongrut, Voto Bernales","prog":[0,0,30000,0,0]},{"act":"Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional","sub":"Huella de carbono en Hospital Suarez Angamos y Hospital Emergencias Grau","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental","sub":"Asistencia Tecnica sobre Directiva de Gestión y Manejo de Residuos Sólidos en ESSALUD","prog":[0,0,0,5322,0]},{"act":"Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental","sub":"Asistencia Tecnica sobre Normas para medidas de ecoeficiencia en ESSALUD","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental","sub":"Asistencia Tecnica sobre Norma Técnica para la Limpieza y Desinfección","prog":[3520,7200,0,0,0]},{"act":"Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental","sub":"Fortalecimiento IPRESS sobre abordaje integral de salud en población expuesta a metales pesados","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental","sub":"Monitorear el Programa de Adecuación y Manejo Ambiental en las IPRESS a nivel nacional","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica ISO 14001 Gestión Ambiental","sub":"Realizar Asistencia Tecnica en Normas ISO 14001 Gestión Ambiental","prog":[0,0,0,0,0]}]},"GAPR":{"SGMC":[{"act":"Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria","sub":"Aprobacion documento normativo Medicina Complementaria: GUÍA METODOLÓGICA PREPARADOS FITO FARMACEUTICOS","prog":[0,0,0,0,0]},{"act":"Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria","sub":"Aprobacion documento normativo: Actualización DIRECTIVA N°008 NORMAS GENERALES CENTROS MEDICINA COMPLEMENTARIA","prog":[0,0,0,0,0]},{"act":"Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria","sub":"Monitorear y evaluar el cumplimiento de los documentos normativos de Medicina Complementaria","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria","sub":"Realizar asistencia técnica: Medicina Complementaria y Estrategia PREVENIR en Redes Asistenciales","prog":[8960,9400,0,0,40554]}],"SGPSYPE":[{"act":"Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria","sub":"Formulación DTO: Control del Crecimiento y Desarrollo del adolescente en EsSalud","prog":[0,0,0,0,0]},{"act":"Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria","sub":"Formulación DTO: Cuidado integral de salud del adulto en EsSalud","prog":[0,0,0,0,0]},{"act":"Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria","sub":"Formulación DTO: Psicoprofilaxis del Climaterio en EsSalud","prog":[0,0,0,0,0]},{"act":"Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria","sub":"Formulación DTO: Herramientas para actividades educativas de intervención nutricional en EsSalud","prog":[0,0,0,0,0]},{"act":"Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria","sub":"Asistencia Técnica: Implantación DTO Cuidado integral de salud del adulto mayor en EsSalud","prog":[0,0,0,3193,2000]},{"act":"Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria","sub":"Asistencia Técnica: Implantación DTO Control del Crecimiento y Desarrollo del adolescente en EsSalud","prog":[0,0,0,3193,2000]},{"act":"Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria","sub":"Asistencia Técnica: Cuidado Integral para prevención y control de la anemia en EsSalud","prog":[0,0,0,3193,2000]},{"act":"Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria","sub":"Asistencia Técnica: Manual Promoción de la Salud y Prevención en Nutrición de EsSalud","prog":[0,0,0,3193,2000]},{"act":"Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria","sub":"Asistencia Técnica: Implantación DTO Psicoprofilaxis del Climaterio en EsSalud","prog":[0,0,0,3193,2000]}],"SGCPAP":[{"act":"Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria","sub":"Controlar, monitorear y/o supervisar la normativa de inmunizaciones, crecimiento y desarrollo","prog":[1280,2998,12000,0,0]},{"act":"Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria","sub":"Controlar, monitorear y/o supervisar las normativas de lucha contra la anemia","prog":[1280,2998,12000,0,0]},{"act":"Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria","sub":"Controlar, monitorear y/o supervisar las disposiciones de la normativa PREVENIR","prog":[1280,2998,14000,0,0]},{"act":"Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria","sub":"Controlar, monitorear y/o supervisar normativas Etapa vida adulto: prevención del Cáncer y salud materna","prog":[11138,4600,42000,0,0]},{"act":"Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria","sub":"Controlar, monitorear y/o supervisar normas del modelo de cuidado integral incluyendo ENT y salud mental","prog":[1280,998,0,0,600]},{"act":"Implementacion de herramienta informática para Estrategia Prevenir EsSalud","sub":"Implementacion de herramienta informática para registrar información de atenciones primarias en Estrategia Prevenir EsSalud","prog":[0,0,0,0,0]}]}};
-
-var ejecDB = {};
-var modalCtx = null;
-var histCache = [];
+/* ── DATOS con campos adicionales: cod_oe, obj, cod_ae, accion ── */
+var DATOS={"GPNAIS": {"SGPE": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualización de los requisitos técnicos para la implementación de las UPSS Ocupacional en EsSalud", "prog": [0, 0, 24000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualizar el documento técnico de fortalecimiento de los cuidados críticos en el Seguro Social de Salud", "prog": [0, 0, 40000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualizar la Normativa para la organización y funcionamiento del sistema de emergencias y urgencias del Seguro Social de Salud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualizar las Normas para optimizar la distribución de las camas hospitalarias en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud", "sub": "Realizar asistencia Técnica Virtual sobre Enfermedades Raras y Huérfanas", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud", "sub": "Realizar asistencia Técnica Virtual sobre especialidades de apoyo en Salud Ocupacional", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud", "sub": "Realizar asistencia Técnica Virtual sobre la normativa de Emergencias", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual orientada a mejorar las prestaciones de Salud", "sub": "Realizar asistencia Técnica Virtual sobre la normativa de Cuidados Críticos - Cuidados Intensivos", "prog": [0, 0, 0, 0, 0]}], "SGNAPS": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Documentos normativos: Criterios de priorización del parto por cesárea", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Documentos normativos: Manejo no farmacológico HTA, DM, sobrepeso y Obesidad", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Documentos normativos: Manual del Cuidado Integral de la Salud Mental en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Documentos normativos: Norma para la Atención Integral de la TB en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual y/o presencial: Salud Materna", "prog": [10880, 2131, 0, 5900, 2000]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual y/o presencial: Análisis de casos de muerte materna", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual y/o presencial: HTA-DM", "prog": [7100, 4060, 0, 5808, 2246]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual y/o presencial: Salud Mental", "prog": [2560, 0, 0, 3000, 800]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual y/o presencial: VIH/SIDA", "prog": [2500, 0, 0, 2300, 800]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual y/o presencial: Prevención y Control de la TB", "prog": [3112, 0, 0, 2400, 800]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual y/o presencial: Enfermedad Osteomuscular y tejido conectivo", "prog": [0, 0, 0, 2700, 0]}], "SGNADYT": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Documento normativo: Actualización Manual Procedimientos Anatomía Patológica 2026", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualización Manual obtención y uso racional de la sangre en ESSALUD", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Documento normativo: Actualización Manual Procedimientos Psicología MAPRO-2026", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Documento normativo: Actualización Manual Procedimientos Trabajo Social MAPRO-2026", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Formulación DTO Manual del Programa de Higiene y Saneamiento en Nutrición en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Guía actividades asistenciales Químicos Farmacéuticos ESSALUD", "prog": [0, 0, 34000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual: Implementación Formatos Psicología en ESSI", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual: Implementación Formatos Trabajo Social en ESSI", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica: Manual Prestaciones Psicología EsSalud 2026", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica: Manual Prestaciones Trabajo Social EsSalud 2026", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual: Manual obtención sangre y componentes ESSALUD", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica: Manual Prestaciones Anatomía Patológica EsSalud", "prog": [0, 0, 0, 3000, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica: Manual Programa Higiene y Saneamiento Nutrición EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Realizar asistencia técnica virtual y/o presencial orientada a mejorar prestaciones de Salud", "sub": "Asistencia Técnica Virtual sobre gestión de Servicios/Unidades de Nutrición", "prog": [0, 0, 0, 0, 0]}], "SGNSS": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualización Directiva Disposiciones para la Atención Ambulatoria en IPRESS de ESSALUD", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualización Directiva Norma para las Prestaciones de Salud de Atención Domiciliaria en ESSALUD", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualización Directiva Norma para la Referencia y Contrarreferencia en el Seguro Social de Salud", "prog": [0, 0, 0, 1500, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Aprobar Directiva Acceso, Registro y Uso Información en el Sistema ESSI de ESSALUD", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Formular Norma para la conformación y funcionamiento de las redes funcionales de salud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Supervisión a las IPRESS en el cumplimiento de Normas de Atención Integral de Salud", "sub": "Supervisiones actividades preparatorias categorización o recategorización de IPRESS de ESSALUD", "prog": [5760, 6915, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Brindar asistencia técnica a órganos desconcentrados para mejorar prestaciones de Salud", "sub": "Asistencias Técnicas sobre actividades preparatorias de categorización/recategorización de IPRESS", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.1", "accion": "Cartera de servicios de atención primaria implementada estableciendo paquetes esenciales de salud por etapas de vida con enfoque preventivo dirigido a los asegurados.", "act": "Brindar asistencia técnica a órganos desconcentrados para mejorar prestaciones de Salud", "sub": "Realizar asistencia técnica virtual de documentos normativos", "prog": [0, 0, 0, 0, 0]}]}, "OIIS": {"GENERAL": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI 1.2.", "accion": "Capacidad resolutiva fortalecida orientada a la extensión de la cobertura en el Seguro Social de Salud.", "act": "Formulación y/o Actualización de Documentos Normativos", "sub": "Actualizar documentos normativos de Inteligencia e Información Sanitaria: Actualización Directiva Vigilancia de Brotes y EVISAP", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI 1.2.", "accion": "Capacidad resolutiva fortalecida orientada a la extensión de la cobertura en el Seguro Social de Salud.", "act": "Asistencia Técnica para el Fortalecimiento de la Red de Inteligencia Sanitaria", "sub": "Realizar asistencia técnica presencial para el Fortalecimiento de la Red de Inteligencia Sanitaria: 04 Reuniones Macrorregionales, 01 Reunión nacional", "prog": [9160, 6000, 0, 16231, 25700]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI 1.2.", "accion": "Capacidad resolutiva fortalecida orientada a la extensión de la cobertura en el Seguro Social de Salud.", "act": "Desarrollar e implementar herramientas para análisis y difusión de información epidemiológica", "sub": "Desarrollar e implementar tableros de información epidemiológica: Brotes/Contingencias/Gestión Mortalidad", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI 1.2.", "accion": "Capacidad resolutiva fortalecida orientada a la extensión de la cobertura en el Seguro Social de Salud.", "act": "Desarrollo de Estudios Epidemiológicos", "sub": "Elaboración de Estudios de Prevalencia Puntual de Infecciones Intrahospitalarias", "prog": [7360, 4400, 0, 0, 0]}]}, "GSAM": {"GENERAL": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Aprobacion de documentos normativos de Salud Ambiental", "sub": "Plan de Trabajo: Abordaje Integral Población Asegurada Expuesta a Metales Pesados y Sustancias Químicas Tóxicas", "prog": [0, 0, 33500, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Aprobacion de documentos normativos de Salud Ambiental", "sub": "Directiva de Gestión y Manejo de Residuos Sólidos en el Seguro Social de Salud - ESSALUD", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional", "sub": "Seguimiento implementación Plan de Trabajo: Abordaje Integral Población Expuesta a Metales Pesados", "prog": [4480, 4690, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional", "sub": "Evaluación del control y manejo de residuos sólidos en las IPRESS de ESSALUD", "prog": [1600, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional", "sub": "Evaluación de las disposiciones para la limpieza y desinfección de ambientes en las IPRESS de ESSALUD", "prog": [2560, 3600, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional", "sub": "Normas de Bioseguridad en el Seguro Social de Salud - ESSALUD", "prog": [3840, 4800, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional", "sub": "Seguimiento Normas ISO 14001-2015 Gestión Ambiental en hospitales Alcantara, Mongrut, Voto Bernales", "prog": [0, 0, 30000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Monitorear el cumplimiento de documentos normativos de Salud Ambiental a nivel nacional", "sub": "Huella de carbono en Hospital Suarez Angamos y Hospital Emergencias Grau", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental", "sub": "Asistencia Tecnica sobre Directiva de Gestión y Manejo de Residuos Sólidos en ESSALUD", "prog": [0, 0, 0, 5322, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental", "sub": "Asistencia Tecnica sobre Normas para medidas de ecoeficiencia en ESSALUD", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental", "sub": "Asistencia Tecnica sobre Norma Técnica para la Limpieza y Desinfección", "prog": [3520, 7200, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental", "sub": "Fortalecimiento IPRESS sobre abordaje integral de salud en población expuesta a metales pesados", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica para fortalecimiento de IPRESS sobre normas de Salud Ambiental", "sub": "Monitorear el Programa de Adecuación y Manejo Ambiental en las IPRESS a nivel nacional", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.2", "accion": "Servicios de salud ambiental implementados en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica ISO 14001 Gestión Ambiental", "sub": "Realizar Asistencia Tecnica en Normas ISO 14001 Gestión Ambiental", "prog": [0, 0, 0, 0, 0]}]}, "GAPR": {"SGMC": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria", "sub": "Aprobacion documento normativo Medicina Complementaria: GUÍA METODOLÓGICA PREPARADOS FITO FARMACEUTICOS", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria", "sub": "Aprobacion documento normativo: Actualización DIRECTIVA N°008 NORMAS GENERALES CENTROS MEDICINA COMPLEMENTARIA", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria", "sub": "Monitorear y evaluar el cumplimiento de los documentos normativos de Medicina Complementaria", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria", "sub": "Realizar asistencia técnica: Medicina Complementaria y Estrategia PREVENIR en Redes Asistenciales", "prog": [8960, 9400, 0, 0, 40554]}], "SGPSYPE": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria", "sub": "Formulación DTO: Control del Crecimiento y Desarrollo del adolescente en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria", "sub": "Formulación DTO: Cuidado integral de salud del adulto en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria", "sub": "Formulación DTO: Psicoprofilaxis del Climaterio en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Formulación y/o actualización de Documentos Normativos para fortalecer la Atención Primaria", "sub": "Formulación DTO: Herramientas para actividades educativas de intervención nutricional en EsSalud", "prog": [0, 0, 0, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria", "sub": "Asistencia Técnica: Implantación DTO Cuidado integral de salud del adulto mayor en EsSalud", "prog": [0, 0, 0, 3193, 2000]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria", "sub": "Asistencia Técnica: Implantación DTO Control del Crecimiento y Desarrollo del adolescente en EsSalud", "prog": [0, 0, 0, 3193, 2000]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria", "sub": "Asistencia Técnica: Cuidado Integral para prevención y control de la anemia en EsSalud", "prog": [0, 0, 0, 3193, 2000]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria", "sub": "Asistencia Técnica: Manual Promoción de la Salud y Prevención en Nutrición de EsSalud", "prog": [0, 0, 0, 3193, 2000]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Realizar asistencia técnica presencial y/o virtual a redes asistenciales en atención primaria", "sub": "Asistencia Técnica: Implantación DTO Psicoprofilaxis del Climaterio en EsSalud", "prog": [0, 0, 0, 3193, 2000]}], "SGCPAP": [{"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria", "sub": "Controlar, monitorear y/o supervisar la normativa de inmunizaciones, crecimiento y desarrollo", "prog": [1280, 2998, 12000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria", "sub": "Controlar, monitorear y/o supervisar las normativas de lucha contra la anemia", "prog": [1280, 2998, 12000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria", "sub": "Controlar, monitorear y/o supervisar las disposiciones de la normativa PREVENIR", "prog": [1280, 2998, 14000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria", "sub": "Controlar, monitorear y/o supervisar normativas Etapa vida adulto: prevención del Cáncer y salud materna", "prog": [11138, 4600, 42000, 0, 0]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Monitoreo a IPRESS en el cumplimiento de normas de atención primaria y medicina complementaria", "sub": "Controlar, monitorear y/o supervisar normas del modelo de cuidado integral incluyendo ENT y salud mental", "prog": [1280, 998, 0, 0, 600]}, {"cod_oe": "CEI1.", "obj": "Mejorar la seguridad social en salud a través del otorgamiento eficiente, equitativo y oportuno de las prestaciones de salud, económicas y sociales para beneficio de los asegurados.", "cod_ae": "AEI1.3", "accion": "Atención primaria de salud fortalecida en las IPRESS del Seguro Social de Salud.", "act": "Implementacion de herramienta informática para Estrategia Prevenir EsSalud", "sub": "Implementacion de herramienta informática para registrar información de atenciones primarias en Estrategia Prevenir EsSalud", "prog": [0, 0, 0, 0, 0]}]}}
+var ejecDB={};
+var modalCtx=null;
+var histCache=[];
 
 setInterval(function(){
   var el=document.getElementById('fhora');
   if(el) el.textContent=new Date().toLocaleString('es-PE',{weekday:'short',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 },1000);
 
-function fmt(n){ return 'S/ '+Number(n||0).toLocaleString('es-PE'); }
-function fmtN(n){ return Number(n||0).toLocaleString('es-PE'); }
+function fmt(n){return 'S/ '+Number(n||0).toLocaleString('es-PE');}
+function fmtN(n){return Number(n||0).toLocaleString('es-PE');}
 
 function apiGet(path){
   return fetch(SURL+'/rest/v1/'+path,{headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY}}).then(function(r){return r.json();});
@@ -286,7 +253,7 @@ function cargarDatos(){
     var totalProg=0;
     Object.keys(DATOS).forEach(function(g){
       Object.keys(DATOS[g]).forEach(function(sg){
-        DATOS[g][sg].forEach(function(d){ d.prog.forEach(function(v){totalProg+=v;}); });
+        DATOS[g][sg].forEach(function(d){d.prog.forEach(function(v){totalProg+=v;});});
       });
     });
     document.getElementById('s1').textContent=fmt(totalProg);
@@ -304,275 +271,230 @@ function getEjec(g,sg,sub,con){
 }
 
 function onGerChange(){
-  var g = document.getElementById('selGer').value;
-  var sgSel = document.getElementById('selSG');
-  var actSel = document.getElementById('selAct');
-  var subSel = document.getElementById('selSubAct');
-  sgSel.innerHTML = '<option value="">— Sub Gerencia —</option>';
-  actSel.innerHTML = '<option value="">— Actividad Operativa —</option>';
-  subSel.innerHTML = '<option value="">— Sub Actividad —</option>';
-  sgSel.style.display = 'none';
-  actSel.style.display = 'none';
-  subSel.style.display = 'none';
-  if (!g) { renderTablas(); return; }
-  var sgs = Object.keys(DATOS[g] || {});
-  if (sgs.length > 0) {
-    sgs.forEach(function(sg) { sgSel.innerHTML += '<option value="'+sg+'">'+sg+'</option>'; });
-    sgSel.style.display = 'block';
+  var g=document.getElementById('selGer').value;
+  var sgSel=document.getElementById('selSG');
+  var actSel=document.getElementById('selAct');
+  var subSel=document.getElementById('selSubAct');
+  sgSel.innerHTML='<option value="">— Sub Gerencia —</option>';
+  actSel.innerHTML='<option value="">— Actividad Operativa —</option>';
+  subSel.innerHTML='<option value="">— Sub Actividad —</option>';
+  sgSel.style.display='none'; actSel.style.display='none'; subSel.style.display='none';
+  if(!g){renderTablas();return;}
+  var sgs=Object.keys(DATOS[g]||{});
+  if(sgs.length>0){
+    sgs.forEach(function(sg){sgSel.innerHTML+='<option value="'+sg+'">'+sg+'</option>';});
+    sgSel.style.display='block';
   }
   renderTablas();
 }
 
 function onSGChange(){
-  var g = document.getElementById('selGer').value;
-  var sg = document.getElementById('selSG').value;
-  var actSel = document.getElementById('selAct');
-  var subSel = document.getElementById('selSubAct');
-  actSel.innerHTML = '<option value="">— Actividad Operativa —</option>';
-  subSel.innerHTML = '<option value="">— Sub Actividad —</option>';
-  actSel.style.display = 'none';
-  subSel.style.display = 'none';
-  if (sg && DATOS[g] && DATOS[g][sg]) {
-    var acts = {};
-    DATOS[g][sg].forEach(function(d) { acts[d.act] = true; });
-    Object.keys(acts).forEach(function(act) {
-      var short = act.length > 65 ? act.substring(0,65)+'...' : act;
-      actSel.innerHTML += '<option value="'+act.replace(/"/g,'&quot;')+'">'+short+'</option>';
+  var g=document.getElementById('selGer').value;
+  var sg=document.getElementById('selSG').value;
+  var actSel=document.getElementById('selAct');
+  var subSel=document.getElementById('selSubAct');
+  actSel.innerHTML='<option value="">— Actividad Operativa —</option>';
+  subSel.innerHTML='<option value="">— Sub Actividad —</option>';
+  actSel.style.display='none'; subSel.style.display='none';
+  if(sg&&DATOS[g]&&DATOS[g][sg]){
+    var acts={};
+    DATOS[g][sg].forEach(function(d){acts[d.act]=true;});
+    Object.keys(acts).forEach(function(act){
+      var short=act.length>65?act.substring(0,65)+'...':act;
+      actSel.innerHTML+='<option value="'+act.replace(/"/g,'&quot;')+'">'+short+'</option>';
     });
-    actSel.style.display = 'block';
+    actSel.style.display='block';
   }
   renderTablas();
 }
 
 function onActChange(){
-  var g = document.getElementById('selGer').value;
-  var sg = document.getElementById('selSG').value;
-  var act = document.getElementById('selAct').value;
-  var subSel = document.getElementById('selSubAct');
-  subSel.innerHTML = '<option value="">— Sub Actividad —</option>';
-  subSel.style.display = 'none';
-  if (act && DATOS[g] && DATOS[g][sg]) {
-    var subs = DATOS[g][sg].filter(function(d){ return d.act === act; });
-    subs.forEach(function(d) {
-      var short = d.sub.length > 70 ? d.sub.substring(0,70)+'...' : d.sub;
-      subSel.innerHTML += '<option value="'+d.sub.replace(/"/g,'&quot;')+'">'+short+'</option>';
+  var g=document.getElementById('selGer').value;
+  var sg=document.getElementById('selSG').value;
+  var act=document.getElementById('selAct').value;
+  var subSel=document.getElementById('selSubAct');
+  subSel.innerHTML='<option value="">— Sub Actividad —</option>';
+  subSel.style.display='none';
+  if(act&&DATOS[g]&&DATOS[g][sg]){
+    var subs=DATOS[g][sg].filter(function(d){return d.act===act;});
+    subs.forEach(function(d){
+      var short=d.sub.length>70?d.sub.substring(0,70)+'...':d.sub;
+      subSel.innerHTML+='<option value="'+d.sub.replace(/"/g,'&quot;')+'">'+short+'</option>';
     });
-    if (subs.length > 0) subSel.style.display = 'block';
+    if(subs.length>0) subSel.style.display='block';
   }
   renderTablas();
 }
 
 function renderTablas(){
-  var filtroG = document.getElementById('selGer').value;
-  var filtroSG = document.getElementById('selSG').value;
-  var filtroAct = document.getElementById('selAct').value;
-  var filtroSub = document.getElementById('selSubAct').value;
-
-  // ── MODO SUB-ACTIVIDAD ÚNICA: sin columna nombre, tabla centrada ──
-  // Se activa cuando hay una sub actividad específica seleccionada
-  var modoUnico = filtroSub && filtroSub !== '';
-
-  var html = '';
-  var gers = filtroG ? [filtroG] : Object.keys(DATOS);
+  var filtroG=document.getElementById('selGer').value;
+  var filtroSG=document.getElementById('selSG').value;
+  var filtroAct=document.getElementById('selAct').value;
+  var filtroSub=document.getElementById('selSubAct').value;
+  var html='';
+  var gers=filtroG?[filtroG]:Object.keys(DATOS);
   gers.forEach(function(g){
-    var sgs = filtroSG ? [filtroSG] : Object.keys(DATOS[g]||{});
+    var sgs=filtroSG?[filtroSG]:Object.keys(DATOS[g]||{});
     sgs.forEach(function(sg){
-      var items = DATOS[g][sg] || [];
-      if (filtroAct) items = items.filter(function(d){ return d.act === filtroAct; });
-      if (filtroSub) items = items.filter(function(d){ return d.sub === filtroSub; });
-      if (!items.length) return;
-      if (modoUnico) {
-        html += renderBloqueUnico(g, sg, items);
-      } else {
-        html += renderBloque(g, sg, items);
-      }
+      var items=DATOS[g][sg]||[];
+      if(filtroAct) items=items.filter(function(d){return d.act===filtroAct;});
+      if(filtroSub) items=items.filter(function(d){return d.sub===filtroSub;});
+      if(!items.length) return;
+      html+=_renderEjecucion(g,sg,items);
     });
   });
-  document.getElementById('tablasPpto').innerHTML = html || '<div class="empty">Selecciona una gerencia para ver las actividades.</div>';
+  document.getElementById('tablasPpto').innerHTML=html||'<div class="empty">Selecciona una gerencia para ver las actividades.</div>';
 }
 
-/* ── EJECUCIÓN: tabla sin nombre, TOTAL al final de cada sección ── */
-function renderBloque(g, sg, items){ return _renderEjecucion(g, sg, items); }
-function renderBloqueUnico(g, sg, items){ return _renderEjecucion(g, sg, items); }
-
-function _renderEjecucion(g, sg, items){
-  var titulo = g + (sg && sg !== 'GENERAL' ? ' — ' + sg : '');
-  var N = CONCEPTOS.length;
-
-  var html = '<div class="gblock">';
-  html += '<div class="gtitle">EJECUCIÓN PRESUPUESTAL 2026 — ' + titulo;
-  html += '<span>&#x1F4B5; Haz clic en los montos verdes para registrar</span>';
-  html += '</div>';
-  html += '<div style="overflow-x:auto;"><table><thead>';
-
-  // Fila 1: grupos — partidas primero, TOTAL al final
-  html += '<tr>';
-  html += '<th colspan="'+(N+1)+'" style="background:#fef9c3;color:#854d0e;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #fbbf24;border-left:3px solid #fbbf24;padding:7px;">📋 PROGRAMACIÓN</th>';
-  html += '<th colspan="'+(N+1)+'" style="background:#dcfce7;color:#166534;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #34d399;border-left:3px solid #34d399;padding:7px;">💰 EJECUCIÓN</th>';
-  html += '<th colspan="'+(N+1)+'" style="background:#ffedd5;color:#c2410c;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #f97316;border-left:3px solid #f97316;padding:7px;">📊 SALDO PRESUPUESTAL</th>';
-  html += '</tr>';
-
-  // Fila 2: partidas primero, TOTAL al final
-  html += '<tr>';
-  CONCEPTOS.forEach(function(c){ html += '<th class="hprog" style="border-left:3px solid #fbbf24;min-width:90px;">'+c+'</th>'; });
-  html += '<th class="hprog" style="min-width:80px;font-weight:800;">TOTAL</th>';
-
-  CONCEPTOS.forEach(function(c){ html += '<th class="hejec" style="border-left:3px solid #34d399;min-width:90px;">'+c+'</th>'; });
-  html += '<th class="hejec" style="min-width:80px;font-weight:800;">TOTAL</th>';
-
-  CONCEPTOS.forEach(function(c){ html += '<th class="hsaldo" style="border-left:3px solid #f97316;min-width:90px;">'+c+'</th>'; });
-  html += '<th class="hsaldo" style="min-width:80px;font-weight:800;">TOTAL</th>';
-  html += '</tr></thead><tbody>';
-
-  var totP = new Array(N).fill(0);
-  var totE = new Array(N).fill(0);
-
+function _renderEjecucion(g,sg,items){
+  var titulo=g+(sg&&sg!=='GENERAL'?' — '+sg:'');
+  var N=CONCEPTOS.length;
+  var html='<div class="gblock">';
+  html+='<div class="gtitle">EJECUCIÓN PRESUPUESTAL 2026 — '+titulo;
+  html+='<span>&#x1F4B5; Haz clic en los montos verdes para registrar</span></div>';
+  html+='<div style="overflow-x:auto;"><table><thead><tr>';
+  html+='<th colspan="'+(N+1)+'" style="background:#fef9c3;color:#854d0e;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #fbbf24;border-left:3px solid #fbbf24;padding:7px;">📋 PROGRAMACIÓN</th>';
+  html+='<th colspan="'+(N+1)+'" style="background:#dcfce7;color:#166534;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #34d399;border-left:3px solid #34d399;padding:7px;">💰 EJECUCIÓN</th>';
+  html+='<th colspan="'+(N+1)+'" style="background:#ffedd5;color:#c2410c;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #f97316;border-left:3px solid #f97316;padding:7px;">📊 SALDO PRESUPUESTAL</th>';
+  html+='</tr><tr>';
+  CONCEPTOS.forEach(function(c){html+='<th class="hprog" style="border-left:3px solid #fbbf24;min-width:90px;">'+c+'</th>';});
+  html+='<th class="hprog" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  CONCEPTOS.forEach(function(c){html+='<th class="hejec" style="border-left:3px solid #34d399;min-width:90px;">'+c+'</th>';});
+  html+='<th class="hejec" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  CONCEPTOS.forEach(function(c){html+='<th class="hsaldo" style="border-left:3px solid #f97316;min-width:90px;">'+c+'</th>';});
+  html+='<th class="hsaldo" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  html+='</tr></thead><tbody>';
+  var totP=new Array(N).fill(0);
+  var totE=new Array(N).fill(0);
   items.forEach(function(d){
-    var eArr = CONCEPTOS.map(function(con){ return getEjec(g, sg, d.sub, con); });
-    var tP = d.prog.reduce(function(a,b){return a+b;}, 0);
-    var tE = eArr.reduce(function(a,b){return a+b;}, 0);
-    var tS = tP - tE;
-    d.prog.forEach(function(v,i){ totP[i] += v; });
-    eArr.forEach(function(v,i){ totE[i] += v; });
-
-    var scTotal = tS > 0 ? 'spos' : tS < 0 ? 'sneg' : 'scero';
-    var safeG   = btoa(unescape(encodeURIComponent(g)));
-    var safeSG  = btoa(unescape(encodeURIComponent(sg)));
-    var safeSub = btoa(unescape(encodeURIComponent(d.sub)));
-
-    html += '<tr>';
-    // PROG: partidas + total al final
-    d.prog.forEach(function(v){ html += '<td style="border-left:3px solid #fbbf24;"><span class="pnum">'+(v?fmtN(v):'-')+'</span></td>'; });
-    html += '<td><span class="pnum" style="font-weight:800;">'+(tP?fmtN(tP):'-')+'</span></td>';
-    // EJEC: partidas + total al final
-    eArr.forEach(function(e, ci){
-      html += '<td style="border-left:3px solid #34d399;"><span class="enum" data-g="'+safeG+'" data-sg="'+safeSG+'" data-sub="'+safeSub+'" data-ci="'+ci+'" data-prog="'+d.prog[ci]+'" data-ejec="'+e+'" onclick="clickEnum(this)">'+fmtN(e)+'</span></td>';
+    var eArr=CONCEPTOS.map(function(con){return getEjec(g,sg,d.sub,con);});
+    var tP=d.prog.reduce(function(a,b){return a+b;},0);
+    var tE=eArr.reduce(function(a,b){return a+b;},0);
+    var tS=tP-tE;
+    d.prog.forEach(function(v,i){totP[i]+=v;});
+    eArr.forEach(function(v,i){totE[i]+=v;});
+    var scTotal=tS>0?'spos':tS<0?'sneg':'scero';
+    var safeG=btoa(unescape(encodeURIComponent(g)));
+    var safeSG=btoa(unescape(encodeURIComponent(sg)));
+    var safeSub=btoa(unescape(encodeURIComponent(d.sub)));
+    html+='<tr>';
+    d.prog.forEach(function(v){html+='<td style="border-left:3px solid #fbbf24;"><span class="pnum">'+(v?fmtN(v):'-')+'</span></td>';});
+    html+='<td><span class="pnum" style="font-weight:800;">'+(tP?fmtN(tP):'-')+'</span></td>';
+    eArr.forEach(function(e,ci){
+      html+='<td style="border-left:3px solid #34d399;"><span class="enum" data-g="'+safeG+'" data-sg="'+safeSG+'" data-sub="'+safeSub+'" data-ci="'+ci+'" data-prog="'+d.prog[ci]+'" data-ejec="'+e+'" onclick="clickEnum(this)">'+fmtN(e)+'</span></td>';
     });
-    html += '<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:#166534;">'+fmtN(tE)+'</span></td>';
-    // SALDO: partidas + total al final
-    d.prog.forEach(function(v, ci){
-      var s = v - eArr[ci];
-      var sc = s > 0 ? 'spos' : s < 0 ? 'sneg' : 'scero';
-      html += '<td style="border-left:3px solid #f97316;"><span class="'+sc+'">'+(v?fmtN(s):'-')+'</span></td>';
+    html+='<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:#166534;">'+fmtN(tE)+'</span></td>';
+    d.prog.forEach(function(v,ci){
+      var s=v-eArr[ci];
+      var sc=s>0?'spos':s<0?'sneg':'scero';
+      html+='<td style="border-left:3px solid #f97316;"><span class="'+sc+'">'+(v?fmtN(s):'-')+'</span></td>';
     });
-    html += '<td><span class="'+scTotal+'" style="font-weight:800;">'+fmtN(tS)+'</span></td>';
-    html += '</tr>';
+    html+='<td><span class="'+scTotal+'" style="font-weight:800;">'+fmtN(tS)+'</span></td></tr>';
   });
-
-  // Fila total — línea roja arriba
-  var ttP = totP.reduce(function(a,b){return a+b;},0);
-  var ttE = totE.reduce(function(a,b){return a+b;},0);
-  var ttS = ttP - ttE;
-  var sc2 = ttS > 0 ? 'spos' : ttS < 0 ? 'sneg' : 'scero';
-  var ts = 'border-top:2.5px solid #dc2626;background:#fff5f5;font-weight:800;';
-
-  html += '<tr>';
-  totP.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #fbbf24;"><span class="pnum" style="font-weight:700;">'+fmtN(v)+'</span></td>'; });
-  html += '<td style="'+ts+'"><span class="pnum" style="font-weight:800;color:var(--azul);">'+fmtN(ttP)+'</span></td>';
-  totE.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #34d399;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">'+fmtN(v)+'</span></td>'; });
-  html += '<td style="'+ts+'"><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:var(--verde);">'+fmtN(ttE)+'</span></td>';
+  var ttP=totP.reduce(function(a,b){return a+b;},0);
+  var ttE=totE.reduce(function(a,b){return a+b;},0);
+  var ttS=ttP-ttE;
+  var sc2=ttS>0?'spos':ttS<0?'sneg':'scero';
+  var ts='border-top:2.5px solid #dc2626;background:#fff5f5;font-weight:800;';
+  html+='<tr>';
+  totP.forEach(function(v){html+='<td style="'+ts+'border-left:3px solid #fbbf24;"><span class="pnum" style="font-weight:700;">'+fmtN(v)+'</span></td>';});
+  html+='<td style="'+ts+'"><span class="pnum" style="font-weight:800;color:var(--azul);">'+fmtN(ttP)+'</span></td>';
+  totE.forEach(function(v){html+='<td style="'+ts+'border-left:3px solid #34d399;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">'+fmtN(v)+'</span></td>';});
+  html+='<td style="'+ts+'"><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:var(--verde);">'+fmtN(ttE)+'</span></td>';
   totP.forEach(function(v,i){
-    var s = v - totE[i];
-    var col = s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';
-    html += '<td style="'+ts+'border-left:3px solid #f97316;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';
+    var s=v-totE[i];
+    var col=s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';
+    html+='<td style="'+ts+'border-left:3px solid #f97316;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';
   });
-  html += '<td style="'+ts+'"><span class="'+sc2+'" style="font-size:13px;font-weight:800;">'+fmtN(ttS)+'</span></td>';
-  html += '</tr>';
-
-  html += '</tbody></table></div></div>';
+  html+='<td style="'+ts+'"><span class="'+sc2+'" style="font-size:13px;font-weight:800;">'+fmtN(ttS)+'</span></td></tr>';
+  html+='</tbody></table></div></div>';
   return html;
 }
 
-/* ── VISTA: con columna DENOMINACIÓN + PROG + EJEC + SALDO completo ── */
-function _renderTablaCompleta(g, sg, items, soloLectura){
-  var titulo = g + (sg && sg !== 'GENERAL' ? ' — ' + sg : '');
-  var N = CONCEPTOS.length;
-
-  var html = '<div class="gblock">';
-  html += '<div class="gtitle">'+titulo;
-  html += '<span style="background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;">Solo lectura</span>';
-  html += '</div>';
-  html += '<div style="overflow-x:auto;"><table><thead>';
-
-  // Fila 1: grupos
-  html += '<tr>';
-  html += '<th class="izq" rowspan="2" style="min-width:240px;white-space:normal;line-height:1.3;">DENOMINACIÓN SUB ACTIVIDAD</th>';
-  html += '<th colspan="'+(N+1)+'" style="background:#fef9c3;color:#854d0e;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #fbbf24;border-left:3px solid #fbbf24;padding:7px;">📋 PROGRAMACIÓN</th>';
-  html += '<th colspan="'+(N+1)+'" style="background:#dcfce7;color:#166534;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #34d399;border-left:3px solid #34d399;padding:7px;">💰 EJECUCIÓN</th>';
-  html += '<th colspan="'+(N+1)+'" style="background:#ffedd5;color:#c2410c;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #f97316;border-left:3px solid #f97316;padding:7px;">📊 SALDO PRESUPUESTAL</th>';
-  html += '</tr>';
-
-  // Fila 2: partidas + total al final
-  html += '<tr>';
-  CONCEPTOS.forEach(function(c){ html += '<th class="hprog" style="border-left:3px solid #fbbf24;min-width:90px;">'+c+'</th>'; });
-  html += '<th class="hprog" style="min-width:80px;font-weight:800;">TOTAL</th>';
-  CONCEPTOS.forEach(function(c){ html += '<th class="hejec" style="border-left:3px solid #34d399;min-width:90px;">'+c+'</th>'; });
-  html += '<th class="hejec" style="min-width:80px;font-weight:800;">TOTAL</th>';
-  CONCEPTOS.forEach(function(c){ html += '<th class="hsaldo" style="border-left:3px solid #f97316;min-width:90px;">'+c+'</th>'; });
-  html += '<th class="hsaldo" style="min-width:80px;font-weight:800;">TOTAL</th>';
-  html += '</tr></thead><tbody>';
-
-  var totP = new Array(N).fill(0);
-  var totE = new Array(N).fill(0);
-
+/* ── VISTA: con columnas Cód.OE, Objetivo, Cód.AE, Acción + Denominación + PROG + EJEC + SALDO ── */
+function _renderTablaCompleta(g,sg,items){
+  var titulo=g+(sg&&sg!=='GENERAL'?' — '+sg:'');
+  var N=CONCEPTOS.length;
+  var html='<div class="gblock">';
+  html+='<div class="gtitle">'+titulo;
+  html+='<span style="background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;">Solo lectura</span></div>';
+  html+='<div style="overflow-x:auto;"><table><thead><tr>';
+  /* columnas info — 4 columnas OE/AE + denominacion */
+  html+='<th class="izq" rowspan="2" style="min-width:60px;background:#eff6ff;color:#1e40af;border-right:2px solid #bfdbfe;">Cód. OE</th>';
+  html+='<th class="izq" rowspan="2" style="min-width:160px;background:#eff6ff;color:#1e40af;white-space:normal;border-right:2px solid #bfdbfe;">Objetivo Estratégico</th>';
+  html+='<th class="izq" rowspan="2" style="min-width:60px;background:#eff6ff;color:#1e40af;border-right:2px solid #bfdbfe;">Cód. AE</th>';
+  html+='<th class="izq" rowspan="2" style="min-width:160px;background:#eff6ff;color:#1e40af;white-space:normal;border-right:2px solid #bfdbfe;">Acción Estratégica</th>';
+  html+='<th class="izq" rowspan="2" style="min-width:200px;white-space:normal;line-height:1.3;">Denominación Sub Actividad</th>';
+  html+='<th colspan="'+(N+1)+'" style="background:#fef9c3;color:#854d0e;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #fbbf24;border-left:3px solid #fbbf24;padding:7px;">📋 PROGRAMACIÓN</th>';
+  html+='<th colspan="'+(N+1)+'" style="background:#dcfce7;color:#166534;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #34d399;border-left:3px solid #34d399;padding:7px;">💰 EJECUCIÓN</th>';
+  html+='<th colspan="'+(N+1)+'" style="background:#ffedd5;color:#c2410c;font-size:10px;font-weight:800;text-align:center;border-bottom:2px solid #f97316;border-left:3px solid #f97316;padding:7px;">📊 SALDO PRESUPUESTAL</th>';
+  html+='</tr><tr>';
+  CONCEPTOS.forEach(function(c){html+='<th class="hprog" style="border-left:3px solid #fbbf24;min-width:90px;">'+c+'</th>';});
+  html+='<th class="hprog" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  CONCEPTOS.forEach(function(c){html+='<th class="hejec" style="border-left:3px solid #34d399;min-width:90px;">'+c+'</th>';});
+  html+='<th class="hejec" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  CONCEPTOS.forEach(function(c){html+='<th class="hsaldo" style="border-left:3px solid #f97316;min-width:90px;">'+c+'</th>';});
+  html+='<th class="hsaldo" style="min-width:80px;font-weight:800;">TOTAL</th>';
+  html+='</tr></thead><tbody>';
+  var totP=new Array(N).fill(0);
+  var totE=new Array(N).fill(0);
   items.forEach(function(d){
-    var eArr = CONCEPTOS.map(function(con){ return getEjec(g, sg, d.sub, con); });
-    var tP = d.prog.reduce(function(a,b){return a+b;}, 0);
-    var tE = eArr.reduce(function(a,b){return a+b;}, 0);
-    var tS = tP - tE;
-    d.prog.forEach(function(v,i){ totP[i] += v; });
-    eArr.forEach(function(v,i){ totE[i] += v; });
-    var scTotal = tS > 0 ? 'spos' : tS < 0 ? 'sneg' : 'scero';
-    var subShort = d.sub.length > 75 ? d.sub.substring(0,75)+'...' : d.sub;
-
-    html += '<tr>';
-    html += '<td class="izq" title="'+d.sub.replace(/"/g,'&quot;')+'" style="white-space:normal;line-height:1.4;">'+subShort+'</td>';
-    d.prog.forEach(function(v){ html += '<td style="border-left:3px solid #fbbf24;"><span class="pnum">'+(v?fmtN(v):'-')+'</span></td>'; });
-    html += '<td><span class="pnum" style="font-weight:800;">'+(tP?fmtN(tP):'-')+'</span></td>';
-    eArr.forEach(function(v){ html += '<td style="border-left:3px solid #34d399;"><span class="mono" style="color:#166534;">'+fmtN(v)+'</span></td>'; });
-    html += '<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:#166534;">'+fmtN(tE)+'</span></td>';
+    var eArr=CONCEPTOS.map(function(con){return getEjec(g,sg,d.sub,con);});
+    var tP=d.prog.reduce(function(a,b){return a+b;},0);
+    var tE=eArr.reduce(function(a,b){return a+b;},0);
+    var tS=tP-tE;
+    d.prog.forEach(function(v,i){totP[i]+=v;});
+    eArr.forEach(function(v,i){totE[i]+=v;});
+    var scTotal=tS>0?'spos':tS<0?'sneg':'scero';
+    var subShort=d.sub.length>80?d.sub.substring(0,80)+'...':d.sub;
+    var objShort=(d.obj||'').length>80?(d.obj||'').substring(0,80)+'...':(d.obj||'');
+    var accShort=(d.accion||'').length>80?(d.accion||'').substring(0,80)+'...':(d.accion||'');
+    html+='<tr>';
+    html+='<td class="td-oe" style="border-right:2px solid #bfdbfe;background:#f8fbff;">'+(d.cod_oe||'—')+'</td>';
+    html+='<td class="td-obj" style="border-right:2px solid #bfdbfe;background:#f8fbff;" title="'+(d.obj||'').replace(/"/g,'&quot;')+'">'+objShort+'</td>';
+    html+='<td class="td-ae" style="border-right:2px solid #bfdbfe;background:#f8fbff;">'+(d.cod_ae||'—')+'</td>';
+    html+='<td class="td-acc" style="border-right:2px solid #bfdbfe;background:#f8fbff;" title="'+(d.accion||'').replace(/"/g,'&quot;')+'">'+accShort+'</td>';
+    html+='<td class="izq" title="'+d.sub.replace(/"/g,'&quot;')+'" style="white-space:normal;line-height:1.4;">'+subShort+'</td>';
+    d.prog.forEach(function(v){html+='<td style="border-left:3px solid #fbbf24;"><span class="pnum">'+(v?fmtN(v):'-')+'</span></td>';});
+    html+='<td><span class="pnum" style="font-weight:800;">'+(tP?fmtN(tP):'-')+'</span></td>';
+    eArr.forEach(function(v){html+='<td style="border-left:3px solid #34d399;"><span class="mono" style="color:#166534;">'+fmtN(v)+'</span></td>';});
+    html+='<td><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:#166534;">'+fmtN(tE)+'</span></td>';
     d.prog.forEach(function(v,ci){
-      var s = v - eArr[ci];
-      var sc = s > 0 ? 'spos' : s < 0 ? 'sneg' : 'scero';
-      html += '<td style="border-left:3px solid #f97316;"><span class="'+sc+'">'+(v?fmtN(s):'-')+'</span></td>';
+      var s=v-eArr[ci];
+      var sc=s>0?'spos':s<0?'sneg':'scero';
+      html+='<td style="border-left:3px solid #f97316;"><span class="'+sc+'">'+(v?fmtN(s):'-')+'</span></td>';
     });
-    html += '<td><span class="'+scTotal+'" style="font-weight:800;">'+fmtN(tS)+'</span></td>';
-    html += '</tr>';
+    html+='<td><span class="'+scTotal+'" style="font-weight:800;">'+fmtN(tS)+'</span></td></tr>';
   });
-
-  // Total con línea roja
-  var ttP = totP.reduce(function(a,b){return a+b;},0);
-  var ttE = totE.reduce(function(a,b){return a+b;},0);
-  var ttS = ttP - ttE;
-  var sc2 = ttS > 0 ? 'spos' : ttS < 0 ? 'sneg' : 'scero';
-  var ts = 'border-top:2.5px solid #dc2626;background:#fff5f5;font-weight:800;';
-
-  html += '<tr>';
-  html += '<td class="izq" style="'+ts+'color:#dc2626;font-size:10px;letter-spacing:.3px;">— TOTAL</td>';
-  totP.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #fbbf24;"><span class="pnum" style="font-weight:700;">'+fmtN(v)+'</span></td>'; });
-  html += '<td style="'+ts+'"><span class="pnum" style="font-weight:800;color:var(--azul);">'+fmtN(ttP)+'</span></td>';
-  totE.forEach(function(v){ html += '<td style="'+ts+'border-left:3px solid #34d399;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">'+fmtN(v)+'</span></td>'; });
-  html += '<td style="'+ts+'"><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:var(--verde);">'+fmtN(ttE)+'</span></td>';
+  var ttP=totP.reduce(function(a,b){return a+b;},0);
+  var ttE=totE.reduce(function(a,b){return a+b;},0);
+  var ttS=ttP-ttE;
+  var sc2=ttS>0?'spos':ttS<0?'sneg':'scero';
+  var ts='border-top:2.5px solid #dc2626;background:#fff5f5;font-weight:800;';
+  html+='<tr>';
+  html+='<td colspan="5" class="izq" style="'+ts+'color:#dc2626;font-size:10px;letter-spacing:.3px;">— TOTAL</td>';
+  totP.forEach(function(v){html+='<td style="'+ts+'border-left:3px solid #fbbf24;"><span class="pnum" style="font-weight:700;">'+fmtN(v)+'</span></td>';});
+  html+='<td style="'+ts+'"><span class="pnum" style="font-weight:800;color:var(--azul);">'+fmtN(ttP)+'</span></td>';
+  totE.forEach(function(v){html+='<td style="'+ts+'border-left:3px solid #34d399;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:#166534;">'+fmtN(v)+'</span></td>';});
+  html+='<td style="'+ts+'"><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:var(--verde);">'+fmtN(ttE)+'</span></td>';
   totP.forEach(function(v,i){
-    var s = v - totE[i];
-    var col = s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';
-    html += '<td style="'+ts+'border-left:3px solid #f97316;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';
+    var s=v-totE[i];
+    var col=s>0?'#c2410c':s<0?'var(--rojo)':'var(--gc)';
+    html+='<td style="'+ts+'border-left:3px solid #f97316;"><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+col+';">'+fmtN(s)+'</span></td>';
   });
-  html += '<td style="'+ts+'"><span class="'+sc2+'" style="font-size:13px;font-weight:800;">'+fmtN(ttS)+'</span></td>';
-  html += '</tr>';
-
-  html += '</tbody></table></div></div>';
+  html+='<td style="'+ts+'"><span class="'+sc2+'" style="font-size:13px;font-weight:800;">'+fmtN(ttS)+'</span></td></tr>';
+  html+='</tbody></table></div></div>';
   return html;
 }
 
 function clickEnum(el){
-  var g = decodeURIComponent(escape(atob(el.getAttribute('data-g'))));
-  var sg = decodeURIComponent(escape(atob(el.getAttribute('data-sg'))));
-  var sub = decodeURIComponent(escape(atob(el.getAttribute('data-sub'))));
-  var ci = parseInt(el.getAttribute('data-ci'));
-  var prog = parseFloat(el.getAttribute('data-prog'));
-  var ejec = parseFloat(el.getAttribute('data-ejec'));
-  abrirModal(g, sg, sub, ci, prog, ejec);
+  var g=decodeURIComponent(escape(atob(el.getAttribute('data-g'))));
+  var sg=decodeURIComponent(escape(atob(el.getAttribute('data-sg'))));
+  var sub=decodeURIComponent(escape(atob(el.getAttribute('data-sub'))));
+  var ci=parseInt(el.getAttribute('data-ci'));
+  var prog=parseFloat(el.getAttribute('data-prog'));
+  var ejec=parseFloat(el.getAttribute('data-ejec'));
+  abrirModal(g,sg,sub,ci,prog,ejec);
 }
 
 function abrirModal(g,sg,sub,ci,prog,ejec){
@@ -593,7 +515,7 @@ function abrirModal(g,sg,sub,ci,prog,ejec){
 }
 
 function cerrarModal(){document.getElementById('overlay').classList.remove('on');}
-document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)cerrarModal();});
+window.addEventListener('load',function(){var ov=document.getElementById('overlay');if(ov)ov.addEventListener('click',function(e){if(e.target===this)cerrarModal();});});
 
 function guardarRegistro(){
   var monto=parseFloat(document.getElementById('mmonto').value);
@@ -603,15 +525,14 @@ function guardarRegistro(){
   if(!sust){al.className='malerta err';al.textContent='El sustento es obligatorio.';return;}
   var btn=document.getElementById('bok'),sp=document.getElementById('spin'),tx=document.getElementById('boktxt');
   btn.disabled=true;sp.style.display='block';tx.textContent='Guardando...';
-  var actOp = '';
-  if(DATOS[modalCtx.g] && DATOS[modalCtx.g][modalCtx.sg]){
-    var found = DATOS[modalCtx.g][modalCtx.sg].filter(function(d){return d.sub===modalCtx.sub;});
-    if(found.length > 0) actOp = found[0].act;
+  var actOp='';
+  if(DATOS[modalCtx.g]&&DATOS[modalCtx.g][modalCtx.sg]){
+    var found=DATOS[modalCtx.g][modalCtx.sg].filter(function(d){return d.sub===modalCtx.sub;});
+    if(found.length>0) actOp=found[0].act;
   }
   apiPost({
-    gerencia:modalCtx.g, sub_gerencia:modalCtx.sg, sub_actividad:modalCtx.sub,
-    actividad_operativa:actOp,
-    concepto:CONCEPTOS[modalCtx.ci], monto:monto, sustento:sust,
+    gerencia:modalCtx.g,sub_gerencia:modalCtx.sg,sub_actividad:modalCtx.sub,
+    actividad_operativa:actOp,concepto:CONCEPTOS[modalCtx.ci],monto:monto,sustento:sust,
     usuario:document.getElementById('usuarioSel').value
   }).then(function(ok){
     btn.disabled=false;sp.style.display='none';tx.textContent='\uD83D\uDCBE Guardar';
@@ -632,14 +553,67 @@ function verPanel(id,btn){
 function onVistaGerChange(){
   var g=document.getElementById('selVistaGer').value;
   var sgSel=document.getElementById('selVistaSG');
+  var actSel=document.getElementById('selVistaAct');
+  var subSel=document.getElementById('selVistaSub');
   sgSel.innerHTML='<option value="TODAS">— Todas las sub gerencias —</option>';
-  sgSel.style.display='none';
+  actSel.innerHTML='<option value="TODAS">— Todas las actividades —</option>';
+  subSel.innerHTML='<option value="TODAS">— Sub Actividad —</option>';
+  sgSel.style.display='none'; actSel.style.display='none'; subSel.style.display='none';
   if(g&&g!=='TODAS'){
     var sgs=Object.keys(DATOS[g]||{});
     if(sgs.length>1){
       sgs.forEach(function(sg){sgSel.innerHTML+='<option value="'+sg+'">'+sg+'</option>';});
       sgSel.style.display='block';
+    } else {
+      /* Single SG (like OIIS GENERAL): skip SG dropdown, show actividades directly */
+      var sg=sgs[0];
+      var acts={};
+      DATOS[g][sg].forEach(function(d){acts[d.act]=true;});
+      Object.keys(acts).forEach(function(act){
+        var short=act.length>65?act.substring(0,65)+'...':act;
+        actSel.innerHTML+='<option value="'+act.replace(/"/g,'&quot;')+'">'+short+'</option>';
+      });
+      actSel.style.display='block';
     }
+  }
+  renderVista();
+}
+
+function onVistaSGChange(){
+  var g=document.getElementById('selVistaGer').value;
+  var sg=document.getElementById('selVistaSG').value;
+  var actSel=document.getElementById('selVistaAct');
+  var subSel=document.getElementById('selVistaSub');
+  actSel.innerHTML='<option value="TODAS">— Todas las actividades —</option>';
+  actSel.style.display='none';
+  subSel.innerHTML='<option value="TODAS">— Sub Actividad —</option>';
+  subSel.style.display='none';
+  if(g&&g!=='TODAS'&&sg&&sg!=='TODAS'&&DATOS[g]&&DATOS[g][sg]){
+    var acts={};
+    DATOS[g][sg].forEach(function(d){acts[d.act]=true;});
+    Object.keys(acts).forEach(function(act){
+      var short=act.length>65?act.substring(0,65)+'...':act;
+      actSel.innerHTML+='<option value="'+act.replace(/"/g,'&quot;')+'">'+short+'</option>';
+    });
+    actSel.style.display='block';
+  }
+  renderVista();
+}
+
+function onVistaActChange(){
+  var g=document.getElementById('selVistaGer').value;
+  var sg=document.getElementById('selVistaSG').value;
+  var act=document.getElementById('selVistaAct').value;
+  var subSel=document.getElementById('selVistaSub');
+  subSel.innerHTML='<option value="TODAS">— Sub Actividad —</option>';
+  subSel.style.display='none';
+  if(act&&act!=='TODAS'&&g&&g!=='TODAS'&&sg&&sg!=='TODAS'&&DATOS[g]&&DATOS[g][sg]){
+    var subs=DATOS[g][sg].filter(function(d){return d.act===act;});
+    subs.forEach(function(d){
+      var short=d.sub.length>75?d.sub.substring(0,75)+'...':d.sub;
+      subSel.innerHTML+='<option value="'+d.sub.replace(/"/g,'&quot;')+'">'+short+'</option>';
+    });
+    if(subs.length>0) subSel.style.display='block';
   }
   renderVista();
 }
@@ -647,17 +621,24 @@ function onVistaGerChange(){
 function renderVista(){
   var fg=document.getElementById('selVistaGer').value;
   var fsg=document.getElementById('selVistaSG').value;
+  var fact=document.getElementById('selVistaAct').value;
+  var fsub=document.getElementById('selVistaSub').value;
   var gers=fg&&fg!=='TODAS'?[fg]:Object.keys(DATOS);
   var html='';
   gers.forEach(function(g){
     var sgs=fsg&&fsg!=='TODAS'?[fsg]:Object.keys(DATOS[g]||{});
     sgs.forEach(function(sg){
       var items=DATOS[g][sg]||[];
+      if(fact&&fact!=='TODAS') items=items.filter(function(d){return d.act===fact;});
+      if(fsub&&fsub!=='TODAS') items=items.filter(function(d){return d.sub===fsub;});
       if(!items.length) return;
-      html += _renderTablaCompleta(g, sg, items, true);
+      html+=_renderTablaCompleta(g,sg,items);
     });
   });
   document.getElementById('vistaBody').innerHTML=html||'<div class="empty">Sin datos.</div>';
+  /* show print bar only when something is filtered */
+  var hasFilter=(fg&&fg!=='TODAS')||(fsg&&fsg!=='TODAS')||(fact&&fact!=='TODAS')||(fsub&&fsub!=='TODAS');
+  document.getElementById('vista-print-bar').style.display=hasFilter?'block':'none';
 }
 
 function cargarHistorial(){
@@ -684,7 +665,10 @@ function cargarHistorial(){
       h+='<td><span class="mono">'+fmt(r.monto)+'</span></td>';
       h+='<td style="font-size:11px;color:#64748b;max-width:200px;">'+r.sustento+'</td>';
       h+='<td style="font-size:11px;">'+r.usuario+'</td>';
-      h+='<td><button onclick="eliminar(\''+r.id+'\')" style="padding:4px 8px;background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">🗑 Borrar</button></td>';
+      h+='<td style="display:flex;gap:6px;">';
+h+='<button onclick="eliminar(\''+r.id+'\')" style="padding:4px 8px;background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">🗑 Borrar</button>';
+h+='<button onclick="editarReg(\''+r.id+'\')" style="padding:4px 10px;background:#dbeafe;color:#1d4ed8;border:1.5px solid #93c5fd;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">✏️ Editar</button>';
+h+='</td>';
       h+='</tr>';
     });
     h+='</tbody></table>';
@@ -715,8 +699,187 @@ function exportarCSV(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 
+function descargarExcel(){
+  var fg=document.getElementById('selVistaGer').value;
+  var fsg=document.getElementById('selVistaSG').value;
+  var fact=document.getElementById('selVistaAct').value;
+  var fsub=document.getElementById('selVistaSub').value;
+
+  /* Recopilar filas filtradas */
+  var gers=fg&&fg!=='TODAS'?[fg]:Object.keys(DATOS);
+  var filas=[];
+
+  /* Cabecera */
+  var cab=['Gerencia','Sub Gerencia','Cód. OE','Objetivo Estratégico','Cód. AE','Acción Estratégica','Denominación Sub Actividad',
+    'Prog. Viáticos','Prog. Pasajes','Prog. Locadores','Prog. Alimentos','Prog. Otros Servicios','Prog. TOTAL',
+    'Ejec. Viáticos','Ejec. Pasajes','Ejec. Locadores','Ejec. Alimentos','Ejec. Otros Servicios','Ejec. TOTAL',
+    'Saldo Viáticos','Saldo Pasajes','Saldo Locadores','Saldo Alimentos','Saldo Otros Servicios','Saldo TOTAL'];
+  filas.push(cab);
+
+  gers.forEach(function(g){
+    var sgs=fsg&&fsg!=='TODAS'?[fsg]:Object.keys(DATOS[g]||{});
+    sgs.forEach(function(sg){
+      var items=DATOS[g][sg]||[];
+      if(fact&&fact!=='TODAS') items=items.filter(function(d){return d.act===fact;});
+      if(fsub&&fsub!=='TODAS') items=items.filter(function(d){return d.sub===fsub;});
+      if(!items.length) return;
+
+      items.forEach(function(d){
+        var eArr=CONCEPTOS.map(function(con){return getEjec(g,sg,d.sub,con);});
+        var tP=d.prog.reduce(function(a,b){return a+b;},0);
+        var tE=eArr.reduce(function(a,b){return a+b;},0);
+        var tS=tP-tE;
+        var fila=[
+          g, sg,
+          d.cod_oe||'', d.obj||'', d.cod_ae||'', d.accion||'', d.sub,
+          d.prog[0],d.prog[1],d.prog[2],d.prog[3],d.prog[4],tP,
+          eArr[0],eArr[1],eArr[2],eArr[3],eArr[4],tE,
+          d.prog[0]-eArr[0],d.prog[1]-eArr[1],d.prog[2]-eArr[2],d.prog[3]-eArr[3],d.prog[4]-eArr[4],tS
+        ];
+        filas.push(fila);
+      });
+
+      /* Fila total del bloque */
+      var totP=new Array(5).fill(0);
+      var totE=new Array(5).fill(0);
+      items.forEach(function(d){
+        var eArr=CONCEPTOS.map(function(con){return getEjec(g,sg,d.sub,con);});
+        d.prog.forEach(function(v,i){totP[i]+=v;});
+        eArr.forEach(function(v,i){totE[i]+=v;});
+      });
+      var ttP=totP.reduce(function(a,b){return a+b;},0);
+      var ttE=totE.reduce(function(a,b){return a+b;},0);
+      var filaTot=[g,sg,'','','','','— TOTAL',
+        totP[0],totP[1],totP[2],totP[3],totP[4],ttP,
+        totE[0],totE[1],totE[2],totE[3],totE[4],ttE,
+        totP[0]-totE[0],totP[1]-totE[1],totP[2]-totE[2],totP[3]-totE[3],totP[4]-totE[4],ttP-ttE];
+      filas.push(filaTot);
+      filas.push([]); /* línea en blanco entre bloques */
+    });
+  });
+
+  /* Crear workbook */
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet(filas);
+
+  /* Anchos de columna */
+  ws['!cols']=[
+    {wch:10},{wch:10},{wch:8},{wch:40},{wch:8},{wch:40},{wch:50},
+    {wch:12},{wch:12},{wch:12},{wch:12},{wch:14},{wch:12},
+    {wch:12},{wch:12},{wch:12},{wch:12},{wch:14},{wch:12},
+    {wch:12},{wch:12},{wch:12},{wch:12},{wch:14},{wch:12}
+  ];
+
+  XLSX.utils.book_append_sheet(wb,ws,'Ejecución POI 2026');
+
+  /* Hoja de resumen de filtros */
+  var info=[
+    ['REPORTE: Ejecución Presupuestal POI 2026 — GCPS EsSalud'],
+    ['Fecha de descarga:', new Date().toLocaleString('es-PE')],
+    ['Gerencia:', fg||'Todas'],
+    ['Sub Gerencia:', fsg||'Todas'],
+    ['Actividad Operativa:', fact||'Todas'],
+    ['Sub Actividad:', fsub||'Todas'],
+    ['Total filas de datos:', filas.length-2]
+  ];
+  var wsInfo=XLSX.utils.aoa_to_sheet(info);
+  wsInfo['!cols']=[{wch:25},{wch:60}];
+  XLSX.utils.book_append_sheet(wb,wsInfo,'Filtros aplicados');
+
+  /* Nombre del archivo */
+  var partes=['Ejecucion_POI_2026'];
+  if(fg&&fg!=='TODAS') partes.push(fg);
+  if(fsg&&fsg!=='TODAS') partes.push(fsg);
+  var fname=partes.join('_')+'_'+new Date().toISOString().split('T')[0]+'.xlsx';
+
+  XLSX.writeFile(wb,fname);
+}
+
+var editCtx=null;
+
+function editarReg(id){
+  var r=histCache.filter(function(x){return String(x.id)===String(id);})[0];
+  if(!r){alert('Registro no encontrado.');return;}
+  abrirEditModal(r);
+}
+
+function abrirEditModal(r){
+  editCtx=r;
+  var f=new Date(r.fecha_hora).toLocaleString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('edit-info').innerHTML=
+    '<div><strong>Fecha:</strong> '+f+'</div>'+
+    '<div><strong>Gerencia:</strong> '+r.gerencia+' — '+r.sub_gerencia+'</div>'+
+    '<div><strong>Concepto:</strong> <span style="font-weight:700;color:var(--verde);">'+r.concepto+'</span></div>'+
+    '<div style="font-size:11px;color:var(--gc);margin-top:4px;">'+r.sub_actividad+'</div>';
+  document.getElementById('edit-monto').value=r.monto||'';
+  document.getElementById('edit-sust').value=r.sustento||'';
+  document.getElementById('edit-ccount').textContent=(r.sustento||'').length;
+  var al=document.getElementById('edit-alerta'); al.className='malerta'; al.textContent='';
+  document.getElementById('overlay-edit').classList.add('on');
+  setTimeout(function(){document.getElementById('edit-monto').focus();},100);
+}
+
+function cerrarEditModal(){
+  document.getElementById('overlay-edit').classList.remove('on');
+}
+window.addEventListener('load',function(){var oe=document.getElementById('overlay-edit');if(oe)oe.addEventListener('click',function(e){if(e.target===this)cerrarEditModal();});});
+
+function guardarEdicion(){
+  var monto=parseFloat(document.getElementById('edit-monto').value);
+  var sust=document.getElementById('edit-sust').value.trim();
+  var al=document.getElementById('edit-alerta');
+  if(!monto||monto<=0){al.className='malerta err';al.textContent='Ingresa un monto válido mayor a 0.';return;}
+  if(!sust){al.className='malerta err';al.textContent='El sustento es obligatorio.';return;}
+  var btn=document.getElementById('edit-bok'),sp=document.getElementById('edit-spin'),tx=document.getElementById('edit-boktxt');
+  btn.disabled=true;sp.style.display='block';tx.textContent='Guardando...';
+  fetch(SURL+'/rest/v1/ejecucion_presupuestal?id=eq.'+editCtx.id,{
+    method:'PATCH',
+    headers:{'apikey':SKEY,'Authorization':'Bearer '+SKEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({monto:monto,sustento:sust})
+  }).then(function(r){
+    btn.disabled=false;sp.style.display='none';tx.textContent='💾 Guardar cambios';
+    if(r.ok){
+      al.className='malerta ok';al.textContent='Registro actualizado correctamente.';
+      setTimeout(function(){cerrarEditModal();cargarHistorial();cargarDatos();},1200);
+    } else {
+      al.className='malerta err';al.textContent='Error al guardar. Intenta de nuevo.';
+    }
+  }).catch(function(){
+    btn.disabled=false;sp.style.display='none';tx.textContent='💾 Guardar cambios';
+    al.className='malerta err';al.textContent='Error de conexión.';
+  });
+}
+
 cargarDatos();
 setInterval(cargarDatos,30000);
 </script>
+
+<!-- MODAL EDITAR -->
+<div class="overlay" id="overlay-edit">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar Registro</div>
+    <div class="modal-sub">Puedes modificar el monto y el sustento del registro.</div>
+    <div class="minfo" id="edit-info"></div>
+    <div style="margin-bottom:14px;">
+      <label class="flabel">Monto (S/) *</label>
+      <input type="number" id="edit-monto" class="finput" min="1" placeholder="Ej: 1500" />
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="flabel">Sustento *</label>
+      <textarea id="edit-sust" class="finput" maxlength="800"
+        oninput="document.getElementById('edit-ccount').textContent=this.value.length"
+        style="min-height:100px;"></textarea>
+      <div style="text-align:right;font-size:10px;color:var(--gc);margin-top:3px;"><span id="edit-ccount">0</span>/800</div>
+    </div>
+    <div id="edit-alerta" class="malerta"></div>
+    <div class="mbtns">
+      <button class="bcan" onclick="cerrarEditModal()">Cancelar</button>
+      <button class="bok" id="edit-bok" onclick="guardarEdicion()">
+        <div class="spin" id="edit-spin"></div>
+        <span id="edit-boktxt">💾 Guardar cambios</span>
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
